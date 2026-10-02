@@ -36,6 +36,11 @@ The module adds a small CSS + JS enhancement to the CMS (via
 
 It is dependency-free (no jQuery/entwine required) and makes no server-side or data changes.
 
+## Credits
+
+The nested sub-tab styling is inspired by the segmented-tab pattern popularised by
+[shadcn/ui](https://ui.shadcn.com). Independent implementation.
+
 ## License
 
 BSD-3-Clause.
