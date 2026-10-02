@@ -86,7 +86,7 @@ li.bt-more .bt-more-menu > li > a.bt-active {
     width: auto;
     margin: 0 0 1rem;
     padding: 4px;
-    border: 0;
+    border: 0 !important; /* also override the deeper native border-bottom on level 3+ */
     border-radius: 999px;
     background: var(--bs-tertiary-bg, #f0f1f3);
 }
