@@ -72,3 +72,61 @@ li.bt-more .bt-more-menu > li > a.bt-active {
 #Root > ul.nav-tabs {
     margin-bottom: 1rem;
 }
+
+/* ------------------------------------------------------------------ *
+ * Nested sub-tabs: a segmented control — rounded grey track, inactive
+ * tabs are plain text, the active tab is a white rounded pill with a
+ * soft shadow. Scoped to nested tabsets only (two+ .ss-tabset
+ * ancestors), so the top bar keeps its native underline style.
+ * ------------------------------------------------------------------ */
+.ss-tabset .ss-tabset > ul.nav-tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    width: auto;
+    margin: 0 0 1rem;
+    padding: 4px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--bs-tertiary-bg, #f0f1f3);
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item {
+    margin: 0;
+    border: 0;
+    background: none;
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
+    margin: 0;
+    padding: 4px 16px;
+    border: 0 !important;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--bs-secondary-color, #5b6168);
+    font-size: 0.9em;
+    line-height: 1.5;
+    white-space: nowrap;
+    box-shadow: none;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link:hover {
+    color: var(--bs-body-color, #1a1a1a);
+}
+
+/* Active: white rounded pill with a soft shadow (jQuery UI marks the
+   <li>, Bootstrap the <a>). */
+.ss-tabset .ss-tabset > ul.nav-tabs > li.ui-tabs-active > a.nav-link,
+.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link.active {
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-emphasis-color, #1a1a1a);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Level 3+: a touch smaller. */
+.ss-tabset .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
+    padding: 3px 13px;
+    font-size: 0.82em;
+}
