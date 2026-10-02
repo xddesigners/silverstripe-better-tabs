@@ -1,0 +1,34 @@
+{
+    "name": "xddesigners/silverstripe-better-tabs",
+    "description": "Tame CMS forms that have too many tabs: overflowing tabs collapse into a \"More\" dropdown so the tab bar stays on one row.",
+    "type": "silverstripe-vendormodule",
+    "keywords": [
+        "silverstripe",
+        "cms",
+        "tabs",
+        "ux",
+        "admin"
+    ],
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Remy Vaartjes",
+            "email": "remy@xd.nl"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "silverstripe/framework": "^6.0",
+        "silverstripe/admin": "^3.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        },
+        "expose": [
+            "client"
+        ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

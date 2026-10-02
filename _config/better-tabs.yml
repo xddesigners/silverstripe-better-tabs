@@ -1,0 +1,8 @@
+---
+Name: xd-better-tabs
+---
+SilverStripe\Admin\LeftAndMain:
+  extra_requirements_javascript:
+    - 'xddesigners/silverstripe-better-tabs:client/js/better-tabs.js'
+  extra_requirements_css:
+    - 'xddesigners/silverstripe-better-tabs:client/css/better-tabs.css'
