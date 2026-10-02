@@ -56,6 +56,7 @@ li.bt-more .bt-more-menu > li > a {
     white-space: nowrap;
     color: inherit;
     text-decoration: none;
+    font-weight: 400;
 }
 
 li.bt-more .bt-more-menu > li > a:hover,
