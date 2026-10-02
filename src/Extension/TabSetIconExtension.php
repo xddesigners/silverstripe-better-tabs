@@ -28,12 +28,14 @@ class TabSetIconExtension extends Extension
 
     public function setIcon(string $icon): TabSet
     {
-        (self::$icons ??= new WeakMap())[$this->owner] = $icon;
+        self::$icons ??= new WeakMap();
+        self::$icons[$this->owner] = $icon;
         return $this->owner;
     }
 
     public function getIcon(): string
     {
-        return (self::$icons ??= new WeakMap())[$this->owner] ?? '';
+        self::$icons ??= new WeakMap();
+        return self::$icons[$this->owner] ?? '';
     }
 }
