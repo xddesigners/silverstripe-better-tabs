@@ -78,6 +78,18 @@ li.bt-more .bt-more-menu > li > a.bt-active {
     margin-bottom: 1rem;
 }
 
+/* Vertically align a tab's icon (native .tab__icon span) with its label. */
+.ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.ss-tabset > ul.nav-tabs .tab__icon {
+    margin: 0;
+    line-height: 1;
+}
+
 /* ------------------------------------------------------------------ *
  * Nested sub-tabs: a segmented control — rounded grey track, inactive
  * tabs are plain text, the active tab is a white rounded pill with a
