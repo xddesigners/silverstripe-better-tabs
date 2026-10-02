@@ -11,6 +11,7 @@ li.bt-more {
 li.bt-more > .bt-more-toggle {
     cursor: pointer;
     white-space: nowrap;
+    font-weight: 400;
 }
 
 li.bt-more .bt-kebab {
@@ -19,11 +20,6 @@ li.bt-more .bt-kebab {
     margin-left: 0.4em;
     fill: currentColor;
     vertical-align: middle;
-}
-
-/* Highlight "More" when the active tab is hidden inside it. */
-li.bt-more.bt-has-active > .bt-more-toggle {
-    font-weight: 600;
 }
 
 li.bt-more .bt-more-menu {
