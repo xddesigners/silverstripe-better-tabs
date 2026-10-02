@@ -6,7 +6,11 @@
 
 li.bt-more {
     position: relative;
-    margin-left: auto; /* push the More button to the right edge of the bar */
+}
+
+/* Push the More button to the right edge of the (flex) tab bar. */
+.ss-tabset > ul.nav-tabs > li.bt-more {
+    margin-left: auto !important;
 }
 
 li.bt-more > .bt-more-toggle {
