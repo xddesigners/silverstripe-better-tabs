@@ -6,6 +6,7 @@
 
 li.bt-more {
     position: relative;
+    margin-left: auto; /* push the More button to the right edge of the bar */
 }
 
 li.bt-more > .bt-more-toggle {
