@@ -137,11 +137,19 @@
             var item = document.createElement('li');
             var link = document.createElement('a');
             link.href = '#';
-            link.textContent = (anchor.textContent || '').trim();
             if (isActive(li)) {
                 link.className = 'bt-active';
                 anyActive = true;
             }
+            // Carry the tab's icon (if any) into the dropdown item.
+            var iconEl = anchor.querySelector('.tab__icon');
+            if (iconEl) {
+                link.appendChild(iconEl.cloneNode(true));
+            }
+            var label = document.createElement('span');
+            label.className = 'bt-more-label';
+            label.textContent = (anchor.textContent || '').trim();
+            link.appendChild(label);
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 closeAllMenus();

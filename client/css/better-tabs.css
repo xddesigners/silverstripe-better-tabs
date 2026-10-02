@@ -56,7 +56,9 @@ li.bt-more .bt-more-menu > li {
 }
 
 li.bt-more .bt-more-menu > li > a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
     padding: 6px 16px;
     white-space: nowrap;
     color: inherit;

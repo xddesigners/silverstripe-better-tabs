@@ -36,6 +36,21 @@ The module adds a small CSS + JS enhancement to the CMS (via
 
 It is dependency-free (no jQuery/entwine required) and makes no server-side or data changes.
 
+## Tab icons
+
+Give any tab a small icon with `setIcon()` (a `font-icon` identifier, without the
+`font-icon-` prefix):
+
+```php
+$fields->fieldByName('Root.Main')->setIcon('block-content');   // a leaf Tab (native)
+$fields->fieldByName('Root.Settings')->setIcon('cog');         // a TabSet (tab group)
+```
+
+`Tab::setIcon()` is built into Silverstripe; this module adds the same `setIcon()`/`getIcon()`
+to **`TabSet`** (via `TabSetIconExtension`) so a tab *group* can have an icon too. Icons render
+through the native `TabSet.ss` template, are vertically aligned with the label, and are carried
+into the "More" overflow dropdown.
+
 ## License
 
 BSD-3-Clause.
