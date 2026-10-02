@@ -64,7 +64,9 @@
         toggle.setAttribute('role', 'button');
         toggle.setAttribute('aria-haspopup', 'true');
         toggle.setAttribute('aria-expanded', 'false');
-        toggle.innerHTML = MORE_LABEL + ' <span class="bt-caret" aria-hidden="true">▾</span>';
+        toggle.innerHTML = MORE_LABEL +
+            ' <svg class="bt-kebab" viewBox="0 0 4 16" aria-hidden="true">' +
+            '<circle cx="2" cy="2.4" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="2" cy="13.6" r="1.5"/></svg>';
 
         var menu = document.createElement('ul');
         menu.className = 'bt-more-menu';

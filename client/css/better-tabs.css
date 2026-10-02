@@ -13,9 +13,12 @@ li.bt-more > .bt-more-toggle {
     white-space: nowrap;
 }
 
-li.bt-more .bt-caret {
-    font-size: 0.8em;
-    margin-left: 0.15em;
+li.bt-more .bt-kebab {
+    width: 4px;
+    height: 15px;
+    margin-left: 0.4em;
+    fill: currentColor;
+    vertical-align: middle;
 }
 
 /* Highlight "More" when the active tab is hidden inside it. */
