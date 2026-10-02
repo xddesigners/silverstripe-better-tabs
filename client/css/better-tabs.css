@@ -64,7 +64,7 @@ li.bt-more .bt-more-menu > li > a:focus {
 }
 
 li.bt-more .bt-more-menu > li > a.bt-active {
-    font-weight: 600;
+    font-weight: 400;
 }
 
 /* Reduce the gap below the top-level tab bar. */
