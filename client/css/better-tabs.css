@@ -68,61 +68,7 @@ li.bt-more .bt-more-menu > li > a.bt-active {
     font-weight: 600;
 }
 
-/* ------------------------------------------------------------------ *
- * Nested sub-tabs: render deeper tab strips as a "segmented pill"
- * control, visually distinct from the top-level underline tab bar.
- * Scoped to nested tabsets only (two+ .ss-tabset ancestors), so the
- * top bar keeps its native style.
- * ------------------------------------------------------------------ */
-.ss-tabset .ss-tabset > ul.nav-tabs {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 3px;
-    width: auto;
-    margin: 0 0 0.6rem;
-    padding: 3px;
-    border: 0;
-    border-radius: 999px; /* fully-rounded pill track */
-    background: var(--bs-tertiary-bg, #eef0f2);
-}
-
-.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item {
-    margin: 0;
-    border: 0;
-    background: none;
-}
-
-/* Each item: a flat, fully-rounded grey pill. */
-.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
-    margin: 0;
-    padding: 3px 14px;
-    border: 0 !important;
-    border-radius: 999px;
-    background: var(--bs-secondary-bg, #e4e7eb);
-    color: var(--bs-body-color, inherit);
-    font-size: 0.88em;
-    line-height: 1.5;
-    white-space: nowrap;
-    box-shadow: none;
-    transition: background-color 0.12s ease;
-}
-
-.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link:hover {
-    background: #d7dbe0;
-    background: color-mix(in srgb, var(--bs-secondary-bg, #e4e7eb) 82%, var(--bs-emphasis-color, #000) 18%);
-}
-
-/* Selected pill: a stronger, flat grey (jQuery UI marks the <li>, Bootstrap the <a>). */
-.ss-tabset .ss-tabset > ul.nav-tabs > li.ui-tabs-active > a.nav-link,
-.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link.active {
-    background: #cfd4da;
-    background: color-mix(in srgb, var(--bs-secondary-bg, #e4e7eb) 66%, var(--bs-emphasis-color, #000) 34%);
-    color: var(--bs-body-bg, #fff);
-    font-weight: 600;
-}
-
-/* Level 3+: a touch smaller. */
-.ss-tabset .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
-    padding: 2px 12px;
-    font-size: 0.8em;
+/* Reduce the gap below the top-level tab bar. */
+#Root > ul.nav-tabs {
+    margin-bottom: 1rem;
 }
