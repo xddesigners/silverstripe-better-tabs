@@ -104,7 +104,7 @@ li.bt-more .bt-more-menu > li > a.bt-active {
     border-radius: 999px;
     background: transparent;
     color: var(--bs-secondary-color, #5b6168);
-    font-size: 0.9em;
+    font-size: 1rem;
     line-height: 1.5;
     white-space: nowrap;
     box-shadow: none;
