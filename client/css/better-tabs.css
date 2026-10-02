@@ -126,5 +126,5 @@ li.bt-more .bt-more-menu > li > a.bt-active {
 /* Level 3+: a touch smaller. */
 .ss-tabset .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
     padding: 3px 13px;
-    font-size: 0.82em;
+    font-size: 0.9rem;
 }
