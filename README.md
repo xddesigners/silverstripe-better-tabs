@@ -173,10 +173,14 @@ tab, like clicking the tab itself would).
 Enable it per form in `getCMSFields()`:
 
 ```php
-$fields->fieldByName('Root')->enableBreadcrumbs();
+$fields->fieldByName('Root')->enableBreadcrumbs();           // nested paths only (2+ levels)
+$fields->fieldByName('Root')->enableBreadcrumbs(true, true); // every tab, even top-level leaves
 ```
 
-…or globally for every CMS form, in your project YAML:
+The second argument shows the breadcrumb on *all* tabs — including top-level tabs that have no
+sub-tabs (rendered as a single crumb) — so the breadcrumb is consistent across the whole form.
+
+Or turn it on globally for every CMS form, in your project YAML:
 
 ```yaml
 XD\BetterTabs\BetterTabs:

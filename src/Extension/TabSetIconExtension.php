@@ -73,17 +73,22 @@ class TabSetIconExtension extends Extension
     }
 
     /**
-     * Show the deep-nested-path breadcrumb for this form, from getCMSFields() (no YAML needed):
+     * Show the active-path breadcrumb for this form, from getCMSFields() (no YAML needed):
      *
-     *     $fields->fieldByName('Root')->enableBreadcrumbs();
+     *     $fields->fieldByName('Root')->enableBreadcrumbs();          // nested paths only
+     *     $fields->fieldByName('Root')->enableBreadcrumbs(true, true); // every tab, even leaves
      *
      * Equivalent to the global `BetterTabs.breadcrumbs` config, but scoped to where you call it.
      *
      * @param bool $enabled
+     * @param bool $includeSingleTab Also show it on tabs that have no sub-tabs (a single crumb).
+     *                               By default the breadcrumb appears only for nested paths
+     *                               (two or more levels).
      */
-    public function enableBreadcrumbs(bool $enabled = true): TabSet
+    public function enableBreadcrumbs(bool $enabled = true, bool $includeSingleTab = false): TabSet
     {
-        $this->owner->setAttribute('data-bt-breadcrumbs', $enabled ? '1' : null);
+        $value = $enabled ? ($includeSingleTab ? 'all' : '1') : null;
+        $this->owner->setAttribute('data-bt-breadcrumbs', $value);
         return $this->owner;
     }
 }

@@ -308,6 +308,12 @@
             || !!document.querySelector('.ss-tabset[data-bt-breadcrumbs]');
     }
 
+    // Whether to show the breadcrumb even for a single active tab (no sub-tabs). Otherwise it
+    // only appears for nested paths (two or more levels).
+    function breadcrumbsIncludeSingle() {
+        return !!document.querySelector('.ss-tabset[data-bt-breadcrumbs="all"]');
+    }
+
     // A nav lives inside a tab group that was marked in PHP with setMode('dropdown') /
     // enableDropdown() (data-bt-mode="dropdown" on the tabset pane). Its own tab bar is hidden
     // and replaced by a dropdown menu, so skip the overflow handling for it.
@@ -618,7 +624,8 @@
             tabset = (panel && panel.classList.contains('ss-tabset')) ? panel : null;
         }
 
-        if (crumbs.length < 2 || !deepest) {
+        var minCrumbs = breadcrumbsIncludeSingle() ? 1 : 2;
+        if (crumbs.length < minCrumbs || !deepest) {
             removeBreadcrumb();
             return;
         }
