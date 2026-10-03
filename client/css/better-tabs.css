@@ -35,9 +35,14 @@ li.bt-more {
     position: relative;
 }
 
-/* Push the More button to the right edge of the (flex) tab bar. */
+/* Push the More button to the right edge of the (flex) top tab bar. */
 .ss-tabset > ul.nav-tabs > li.bt-more {
     margin-left: auto !important;
+}
+
+/* Nested sub-tab tracks are content-width — keep their More inline (not pushed right). */
+.ss-tabset .ss-tabset > ul.nav-tabs > li.bt-more {
+    margin-left: 0 !important;
 }
 
 li.bt-more > .bt-more-toggle {
