@@ -180,6 +180,13 @@ $fields->fieldByName('Root')->enableBreadcrumbs(true, true); // every tab, even 
 The second argument shows the breadcrumb on *all* tabs — including top-level tabs that have no
 sub-tabs (rendered as a single crumb) — so the breadcrumb is consistent across the whole form.
 
+Call it on **a specific tab group** instead of `Root` to scope the breadcrumb to just that tab
+and its children — no breadcrumb shows on the other top-level tabs:
+
+```php
+$fields->fieldByName('Root.Deep')->enableBreadcrumbs();
+```
+
 Or turn it on globally for every CMS form, in your project YAML:
 
 ```yaml

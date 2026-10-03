@@ -303,15 +303,13 @@
         return typeof window === 'undefined' || window.__betterTabsOverflow !== false;
     }
 
+    // The breadcrumb is possibly on when the global config is set, or any tabset is marked with
+    // enableBreadcrumbs() (data-bt-breadcrumbs). Which tab(s) it shows for, and the depth, are
+    // resolved per active path in updateBreadcrumb() — a mark on a specific tabset scopes it to
+    // that tab and its children.
     function breadcrumbsEnabled() {
         return (typeof window !== 'undefined' && !!window.__betterTabsBreadcrumbs)
             || !!document.querySelector('.ss-tabset[data-bt-breadcrumbs]');
-    }
-
-    // Whether to show the breadcrumb even for a single active tab (no sub-tabs). Otherwise it
-    // only appears for nested paths (two or more levels).
-    function breadcrumbsIncludeSingle() {
-        return !!document.querySelector('.ss-tabset[data-bt-breadcrumbs="all"]');
     }
 
     // A nav lives inside a tab group that was marked in PHP with setMode('dropdown') /
@@ -598,11 +596,14 @@
             return;
         }
 
-        // Walk the active chain, tracking the deepest tabset (its nav is the lowest strip).
+        // Walk the active chain, tracking the deepest tabset (its nav is the lowest strip) and
+        // whether a breadcrumb-enabled tab group sits on this path (scoping) and at what depth.
         var crumbs = [];
         var tabset = root;
         var deepest = null;
         var guard = 0;
+        var scopedOn = false;
+        var scopedAll = false;
         while (tabset && guard++ < 12) {
             var nav = tabset.querySelector(':scope > ul.nav-tabs');
             if (!nav) {
@@ -616,6 +617,13 @@
             if (!anchor) {
                 break;
             }
+            var bcAttr = tabset.getAttribute ? tabset.getAttribute('data-bt-breadcrumbs') : null;
+            if (bcAttr) {
+                scopedOn = true;
+                if (bcAttr === 'all') {
+                    scopedAll = true;
+                }
+            }
             crumbs.push({ label: (anchor.textContent || '').trim(), anchor: anchor });
             deepest = tabset;
             var hash = anchor.hash || '';
@@ -624,7 +632,14 @@
             tabset = (panel && panel.classList.contains('ss-tabset')) ? panel : null;
         }
 
-        var minCrumbs = breadcrumbsIncludeSingle() ? 1 : 2;
+        // Global config shows it for the whole form; a per-tabset mark scopes it to that tab's
+        // own active subtree (no breadcrumb on other top tabs).
+        var globalOn = typeof window !== 'undefined' && !!window.__betterTabsBreadcrumbs;
+        if (!globalOn && !scopedOn) {
+            removeBreadcrumb();
+            return;
+        }
+        var minCrumbs = scopedAll ? 1 : 2;
         if (crumbs.length < minCrumbs || !deepest) {
             removeBreadcrumb();
             return;
