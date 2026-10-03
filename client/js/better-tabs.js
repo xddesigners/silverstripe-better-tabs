@@ -54,6 +54,7 @@
             }
             if (bg) {
                 link.style.backgroundColor = bg;
+                link.classList.add('bt-colored-bg'); // CSS fades this while inactive
             }
         });
     }

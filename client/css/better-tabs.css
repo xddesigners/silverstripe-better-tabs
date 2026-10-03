@@ -139,7 +139,13 @@ li.bt-more .bt-more-menu > li > a.bt-active {
 .ss-tabset .ss-tabset > ul.nav-tabs > li.ui-tabs-active > a.nav-link,
 .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link.active {
     background: var(--bs-body-bg, #fff);
-    color: var(--bs-emphasis-color, #1a1a1a);
+    color: var(--bs-body-color, #1a1a1a);
+}
+
+/* A tab with a custom background (setColor with a bg) fades while inactive, so the
+   selected tab stays obvious. */
+.ss-tabset > ul.nav-tabs a.nav-link.bt-colored-bg:not(.active) {
+    opacity: 0.5;
 }
 
 /* Level 3+: a touch smaller. */
