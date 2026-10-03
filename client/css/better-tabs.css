@@ -55,17 +55,14 @@ li.bt-more .bt-kebab {
     vertical-align: middle;
 }
 
-li.bt-more .bt-more-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
+/* The dropdown panel look — shared by the overflow "More" menu and the tab menus below. */
+.bt-more-menu {
     z-index: 1000;
-    min-width: 220px;
+    min-width: 150px;
     max-height: 60vh;
     overflow-y: auto;
     margin: 2px 0 0;
-    padding: 4px 0;
+    padding: 3px 0;
     list-style: none;
     background: var(--bt-dropdown-bg);
     color: var(--bt-dropdown-color);
@@ -74,38 +71,57 @@ li.bt-more .bt-more-menu {
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
+/* Overflow "More" button: dock its menu at the right edge, revealed when open. */
+li.bt-more .bt-more-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+}
+
 li.bt-more.open .bt-more-menu {
     display: block;
 }
 
-li.bt-more .bt-more-menu > li {
-    display: block;
-    float: none; /* counter jQuery UI's .ui-tabs-nav li { float: left } */
-    width: 100%;
-    margin: 0;
-    padding: 0;
+/* The menus are injected INTO the CMS tab nav, whose .ui-tabs-nav li/a rules (float, tab
+   padding, inline-block) would otherwise style these items like tabs — reset them hard. */
+.bt-more-menu > li {
+    display: block !important;
+    float: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    list-style: none;
 }
 
-li.bt-more .bt-more-menu > li > a {
-    display: flex;
+.bt-more-menu > li > a {
+    display: flex !important;
     align-items: center;
     gap: 0.5em;
-    float: none;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 6px 16px;
+    float: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 4px 12px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none;
     white-space: nowrap;
     color: inherit;
+    line-height: 1.4 !important;
     text-decoration: none;
     font-weight: 400;
+    cursor: pointer;
 }
 
-li.bt-more .bt-more-menu > li > a:hover,
-li.bt-more .bt-more-menu > li > a:focus {
+.bt-more-menu > li > a:hover,
+.bt-more-menu > li > a:focus {
     background: var(--bt-dropdown-hover-bg);
 }
 
-li.bt-more .bt-more-menu > li > a.bt-active {
+.bt-more-menu > li > a.bt-active {
     font-weight: 400;
 }
 
@@ -197,117 +213,93 @@ li.bt-more .bt-more-menu > li > a.bt-active {
 }
 
 /* ------------------------------------------------------------------ *
- * Optional: nested sub-tabs as a compact hover dropdown
- * (BetterTabs.nested_dropdown = true), instead of the segmented pill
- * bar. The active sub-tab is the trigger (with a ▾ caret); its siblings
- * drop down on hover. Saves space and pairs well with the breadcrumb.
- * The parent tabset reserves one row (padding-top, set in JS) so the
- * absolutely-positioned dropdown can float over the fields below it.
+ * Optional: a tab group as a website-style dropdown MENU
+ * (TabSet::setMode('dropdown') / enableDropdown()). The group's own tab
+ * item gets a ▾ caret and opens a dropdown (same look as the "More" menu)
+ * listing its sub-tabs on hover/click; groups nested inside open as
+ * flyout submenus. All of the group's in-body sub-tab bars are hidden —
+ * navigation happens through the menu.
  * ------------------------------------------------------------------ */
-.ss-tabset.bt-dd-mode {
-    position: relative;
+
+/* Hide every sub-tab bar inside a dropdown-mode group (nav is via the menu). */
+.ss-tabset[data-bt-mode="dropdown"] ul.nav-tabs {
+    display: none !important;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    flex-wrap: nowrap;
-    gap: 0;
-    width: auto; /* hug the widest item */
-    min-width: 150px;
-    margin: 0;
-    padding: 4px 30px 4px 4px; /* right room for the caret */
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: var(--bt-track-bg);
-    overflow: visible;
-}
-
-/* The ▾ caret that signals "this is a dropdown", centred on the trigger row. */
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd::after {
-    content: '';
-    position: absolute;
-    right: 12px;
-    top: calc(var(--bt-subdd-trigger-h, 40px) / 2);
-    transform: translateY(-50%);
+/* The ▾ caret on the group's own tab item. */
+.bt-tab-caret {
+    display: inline-block;
     width: 0;
     height: 0;
+    margin-left: 0.1em;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
     border-top: 5px solid currentColor;
-    color: var(--bt-tab-color);
-    opacity: 0.55;
-    pointer-events: none;
+    opacity: 0.7;
+    vertical-align: middle;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd.bt-single {
-    padding-right: 4px;
+/* The tab's dropdown + its flyout submenus. */
+li.bt-tabmenu {
+    position: relative;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd.bt-single::after {
+li.bt-tabmenu > .bt-tab-root-menu {
     display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: auto;
 }
 
-/* Collapsed: only the active sub-tab shows (the trigger); it sits on top. */
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.nav-item {
-    display: none;
-    width: 100%;
-    margin: 0;
-    order: 2;
-}
-
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.ui-tabs-active {
-    display: block;
-    order: 1;
-}
-
-/* Open on hover/focus: reveal the siblings and give the panel a surface. */
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:not(.bt-single):hover > li.nav-item,
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:not(.bt-single):focus-within > li.nav-item {
+li.bt-tabmenu:hover > .bt-tab-root-menu,
+li.bt-tabmenu.open > .bt-tab-root-menu {
     display: block;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:not(.bt-single):hover,
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:not(.bt-single):focus-within {
-    background: var(--bt-dropdown-bg);
-    border-color: var(--bt-dropdown-border);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+/* Tab menus hold flyouts, so they must not clip horizontally (unlike the scrolling
+   "More" overflow menu). */
+.bt-tab-root-menu,
+.bt-more-menu .bt-flyout {
+    overflow: visible;
+    max-height: none;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.nav-item > a.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 0.4em;
-    width: 100%;
-    margin: 0;
-    padding: 5px 12px;
-    border: 0 !important;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--bt-tab-color);
-    font-size: 1rem;
-    line-height: 1.5;
-    white-space: nowrap;
-    box-shadow: none;
+.bt-more-menu li.bt-submenu {
+    position: relative;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.ui-tabs-active > a.nav-link {
-    color: var(--bt-tab-active-color);
+.bt-more-menu li.bt-submenu > .bt-flyout {
+    display: none;
+    position: absolute;
+    top: -5px; /* line up with the parent row (menu has 4px padding + 1px border) */
+    left: 100%;
+    margin: 0 0 0 1px;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:hover > li.nav-item > a.nav-link:hover {
-    background: var(--bt-dropdown-hover-bg);
-    color: var(--bt-tab-hover-color);
+.bt-more-menu li.bt-submenu:hover > .bt-flyout,
+.bt-more-menu li.bt-submenu:focus-within > .bt-flyout {
+    display: block;
 }
 
-/* Level 3+ dropdowns: match the smaller nested type scale. */
-.ss-tabset .ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.nav-item > a.nav-link {
-    font-size: 0.9rem;
+/* Flip only when there isn't room on the right (toggled per-menu in JS, measured on open):
+   the root menu aligns to the tab's right edge, a flyout opens to the left of its parent. */
+li.bt-tabmenu.bt-menu-right > .bt-tab-root-menu {
+    left: auto;
+    right: 0;
+}
+
+.bt-more-menu li.bt-submenu.bt-flyout-left > .bt-flyout {
+    left: auto;
+    right: 100%;
+    margin: 0 1px 0 0;
+}
+
+/* The › affordance on a submenu parent. */
+.bt-flyout-caret {
+    margin-left: auto;
+    padding-left: 1.2em;
+    opacity: 0.6;
 }
 
 /* Breadcrumb of the active nested path (opt-in via config). Rendered just below the

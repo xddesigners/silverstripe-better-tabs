@@ -100,16 +100,19 @@ inactive, so the selected tab stays obvious.
 ## Sub-tabs as a dropdown
 
 By default a tab group's sub-tabs render as an inline segmented pill bar. For a group with
-many (or deeply nested) sub-tabs you can instead render them as a compact **dropdown menu**,
-anchored directly under that group's own tab item — it shows the active sub-tab with a ▾ caret
-and opens the rest on hover. Opt in **per tab group**, in PHP:
+many (or deeply nested) sub-tabs you can instead turn it into a website-style **dropdown
+menu**: the group's own tab gets a ▾ caret and, on hover/click, opens a menu of its sub-tabs
+(groups nested inside open as flyout submenus). All of that group's in-body sub-tab bars are
+hidden — navigation happens through the menu, which keeps deep forms tidy. Opt in **per tab
+group**, in PHP:
 
 ```php
 $fields->fieldByName('Root.Deep')->setMode('dropdown'); // or ->enableDropdown()
 ```
 
 `setMode('pills')` (the default) switches it back. Only the group you mark changes; every other
-tabset keeps the pill bar. It pairs well with the breadcrumb below.
+tabset keeps the pill bar. Flyouts open to the right, flipping left only when short on space.
+Pairs well with the breadcrumb.
 
 ## Theming (CSS variables)
 

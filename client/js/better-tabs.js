@@ -159,25 +159,21 @@
     }
 
     function closeAllMenus() {
-        Array.prototype.forEach.call(document.querySelectorAll('li.bt-more.open'), function (m) {
-            m.classList.remove('open');
-            var t = m.querySelector('.bt-more-toggle');
-            if (t) {
-                t.setAttribute('aria-expanded', 'false');
+        Array.prototype.forEach.call(
+            document.querySelectorAll('li.bt-more.open, li.bt-tabmenu.open'),
+            function (m) {
+                m.classList.remove('open');
+                var t = m.querySelector('.bt-more-toggle');
+                if (t) {
+                    t.setAttribute('aria-expanded', 'false');
+                }
             }
-        });
+        );
     }
 
     function layout(ul) {
-        // A dropdown-marked nav is a hover dropdown, not an overflow row — skip the "More"
-        // overflow handling for it.
-        if (isDropdownNav(ul)) {
-            var leftover = ul.querySelector(':scope > li.bt-more');
-            if (leftover) {
-                leftover.style.display = 'none';
-            }
-            ul.classList.remove('bt-has-more');
-            refreshSubReserve(ul);
+        // Navs inside a dropdown-mode group are hidden and replaced by a menu — no overflow.
+        if (inMarkedSubtree(ul)) {
             return;
         }
 
@@ -263,55 +259,221 @@
         return typeof window !== 'undefined' && !!window.__betterTabsBreadcrumbs;
     }
 
-    // A nav renders as a dropdown when its own TabSet was marked in PHP with
-    // setMode('dropdown') / enableDropdown() (data-bt-mode="dropdown" on the tabset pane).
-    function isDropdownNav(ul) {
+    // A nav lives inside a tab group that was marked in PHP with setMode('dropdown') /
+    // enableDropdown() (data-bt-mode="dropdown" on the tabset pane). Its own tab bar is hidden
+    // and replaced by a dropdown menu, so skip the overflow handling for it.
+    function inMarkedSubtree(ul) {
         var tabset = ul.parentNode;
-        return !!(tabset && tabset.nodeType === 1 && tabset.matches &&
-            tabset.matches('.ss-tabset[data-bt-mode="dropdown"]'));
+        return !!(tabset && tabset.closest &&
+            tabset.closest('.ss-tabset[data-bt-mode="dropdown"]'));
     }
 
-    // Turn the nav into a compact dropdown: the tabset reserves one row (padding-top) and the
-    // (absolutely positioned) nav shows only the active tab until hovered — anchored directly
-    // under the tabset's own tab item in the parent bar.
-    function setupSubDropdown(ul) {
-        var tabset = ul.parentNode;
-        if (!tabset) {
-            return;
-        }
-        ul.classList.add('bt-subdd');
-        tabset.classList.add('bt-dd-mode');
-        if (realTabs(ul).length < 2) {
-            ul.classList.add('bt-single'); // nothing to drop down to
-        } else {
-            ul.classList.remove('bt-single');
-        }
-        refreshSubReserve(ul);
+    // The tabset pane a tab anchor points at, or null for a leaf tab.
+    function childTabset(anchor) {
+        var hash = anchor.hash || '';
+        var id = hash.charAt(0) === '#' ? hash.slice(1) : hash;
+        var panel = id ? document.getElementById(id) : null;
+        return panel && panel.classList.contains('ss-tabset') ? panel : null;
     }
 
-    // Measure the collapsed trigger height (reserve that row) and align the dropdown under
-    // the tabset's own tab item in the parent bar.
-    function refreshSubReserve(ul) {
-        var tabset = ul.parentNode;
-        if (!tabset || !ul.classList.contains('bt-subdd')) {
+    // The first leaf tab anchor reached by always taking the first child.
+    function firstLeafAnchor(tabset) {
+        var nav = tabset.querySelector(':scope > ul.nav-tabs');
+        if (!nav) {
+            return null;
+        }
+        var tabs = realTabs(nav);
+        if (!tabs.length) {
+            return null;
+        }
+        var anchor = tabs[0].querySelector('a.nav-link');
+        if (!anchor) {
+            return null;
+        }
+        var child = childTabset(anchor);
+        return child ? firstLeafAnchor(child) : anchor;
+    }
+
+    // Activate the full tab chain leading to a (leaf) tab anchor, top-down, via the jQuery UI
+    // API (no click event -> no CMS link-handler ajax), then reflect it in the URL hash.
+    function activatePath(leafAnchor) {
+        var jq = window.jQuery;
+        if (!jq || typeof jq.fn.tabs !== 'function') {
+            leafAnchor.click();
             return;
         }
-        if (ul.matches && ul.matches(':hover')) {
-            return; // don't measure/realign the open (tall) state
+        var li = leafAnchor.closest ? leafAnchor.closest('li.nav-item') : null;
+        var steps = [];
+        var guard = 0;
+        while (li && guard++ < 12) {
+            var ul = li.parentNode;
+            var tabset = ul ? ul.parentNode : null;
+            if (!tabset || !tabset.classList || !tabset.classList.contains('ss-tabset')) {
+                break;
+            }
+            steps.unshift({ tabset: tabset, li: li });
+            var parentLink = tabset.id ? document.getElementById('tab-' + tabset.id) : null;
+            li = parentLink && parentLink.closest ? parentLink.closest('li.nav-item') : null;
         }
-        var h = ul.offsetHeight; // absolute + only the active tab shown => trigger height
-        if (h > 0) {
-            ul.style.setProperty('--bt-subdd-trigger-h', h + 'px');
-            tabset.style.paddingTop = h + 'px';
+        steps.forEach(function (step) {
+            try {
+                var $ts = jq(step.tabset);
+                if (!$ts.is('.ui-tabs')) {
+                    return;
+                }
+                var idx = $ts.children('ul.nav-tabs').children('li.nav-item')
+                    .not('.bt-more').index(step.li);
+                if (idx > -1) {
+                    $ts.tabs('option', 'active', idx);
+                }
+            } catch (e) {
+                /* ignore */
+            }
+        });
+        if (leafAnchor.hash) {
+            location.hash = leafAnchor.hash;
         }
-        // Align the dropdown horizontally under this tabset's own tab item.
-        var link = tabset.id ? document.getElementById('tab-' + tabset.id) : null;
-        if (link && link.offsetParent !== null) {
-            var left = link.getBoundingClientRect().left - tabset.getBoundingClientRect().left;
-            ul.style.left = (left > 0 ? left : 0) + 'px';
-        } else {
-            ul.style.left = '0px';
+    }
+
+    // Build a dropdown list (reusing the "More" menu look) for one tabset's child tabs. A child
+    // that is itself a tab group becomes a flyout submenu (recursively).
+    function buildMenuLevel(tabset) {
+        var menu = document.createElement('ul');
+        menu.className = 'bt-more-menu';
+        var nav = tabset.querySelector(':scope > ul.nav-tabs');
+        if (!nav) {
+            return menu;
         }
+        realTabs(nav).forEach(function (tabLi) {
+            var anchor = tabLi.querySelector('a.nav-link');
+            if (!anchor) {
+                return;
+            }
+            var group = childTabset(anchor);
+            var item = document.createElement('li');
+            var link = document.createElement('a');
+            link.href = '#';
+
+            var iconEl = anchor.querySelector('.tab__icon');
+            if (iconEl) {
+                link.appendChild(iconEl.cloneNode(true));
+            }
+            var label = document.createElement('span');
+            label.className = 'bt-more-label';
+            label.textContent = (anchor.textContent || '').trim();
+            link.appendChild(label);
+            if (anchor.style.color) {
+                link.style.color = anchor.style.color;
+            }
+            if (anchor.style.backgroundColor) {
+                link.style.backgroundColor = anchor.style.backgroundColor;
+            }
+            if (isActive(tabLi)) {
+                link.classList.add('bt-active');
+            }
+
+            if (group) {
+                item.classList.add('bt-submenu');
+                link.insertAdjacentHTML('beforeend',
+                    '<span class="bt-flyout-caret" aria-hidden="true">›</span>');
+                var flyout = buildMenuLevel(group);
+                flyout.classList.add('bt-flyout');
+                item.appendChild(link);
+                item.appendChild(flyout);
+                // Flyout opens to the right by default; flip left only if it would overflow.
+                flipIfOverflow(item, flyout, 'bt-flyout-left');
+                // Clicking a group heading jumps to its first leaf (hover opens the flyout).
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var leaf = firstLeafAnchor(group);
+                    if (leaf) {
+                        closeAllMenus();
+                        activatePath(leaf);
+                        setTimeout(updateBreadcrumb, 0);
+                    }
+                });
+            } else {
+                item.appendChild(link);
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeAllMenus();
+                    activatePath(anchor);
+                    setTimeout(updateBreadcrumb, 0);
+                });
+            }
+            menu.appendChild(item);
+        });
+        return menu;
+    }
+
+    // Open a menu/flyout in its default direction, flipping (via `cls`) only when its right
+    // edge would run off the viewport. Measured each time the pointer opens it.
+    function flipIfOverflow(container, menuEl, cls) {
+        container.addEventListener('mouseenter', function () {
+            container.classList.remove(cls);
+            var r = menuEl.getBoundingClientRect();
+            var vw = window.innerWidth || document.documentElement.clientWidth;
+            if (r.width && r.right > vw - 4) {
+                container.classList.add(cls);
+            }
+        });
+    }
+
+    function addTabCaret(link) {
+        if (link.querySelector('.bt-tab-caret')) {
+            return;
+        }
+        var caret = document.createElement('span');
+        caret.className = 'bt-tab-caret';
+        caret.setAttribute('aria-hidden', 'true');
+        link.appendChild(caret);
+    }
+
+    // For each tab group marked as a dropdown, hang a website-style menu off its own tab item.
+    function buildTabMenus() {
+        Array.prototype.forEach.call(
+            document.querySelectorAll('.ss-tabset[data-bt-mode="dropdown"]'),
+            function (tabset) {
+                // Skip a marked group nested inside another marked group — the outer menu covers it.
+                if (tabset.parentNode && tabset.parentNode.closest &&
+                    tabset.parentNode.closest('.ss-tabset[data-bt-mode="dropdown"]')) {
+                    return;
+                }
+                var link = tabset.id ? document.getElementById('tab-' + tabset.id) : null;
+                if (!link) {
+                    return;
+                }
+                var li = link.closest ? link.closest('li.nav-item') : null;
+                if (!li || li.getAttribute('data-bt-menu') === '1') {
+                    return;
+                }
+                li.setAttribute('data-bt-menu', '1');
+                li.classList.add('bt-tabmenu');
+                addTabCaret(link);
+
+                var menu = buildMenuLevel(tabset);
+                menu.classList.add('bt-tab-root-menu');
+                li.appendChild(menu);
+
+                // Open the menu under the tab by default; align it right only if it would
+                // overflow the viewport (measured each time it opens).
+                flipIfOverflow(li, menu, 'bt-menu-right');
+
+                // Click opens the menu (hover opens it too, via CSS); don't let it switch tabs
+                // or hit the CMS link handler.
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var wasOpen = li.classList.contains('open');
+                    closeAllMenus();
+                    if (!wasOpen) {
+                        li.classList.add('open');
+                    }
+                });
+            }
+        );
     }
 
     // Reset every nested tabset inside a tab's panel to its first tab (its default path).
@@ -438,8 +600,9 @@
         }
         ul.setAttribute('data-bt', '1');
 
-        if (isDropdownNav(ul)) {
-            setupSubDropdown(ul);
+        // Hidden navs inside a dropdown-mode group are driven by the menu, not enhanced here.
+        if (inMarkedSubtree(ul)) {
+            return;
         }
 
         // Re-layout when a tab in this set is activated (the active tab may change).
@@ -466,6 +629,7 @@
         normalizeFaIcons(document);
         applyTabColors();
         Array.prototype.forEach.call(getNavs(), enhance);
+        buildTabMenus();
         updateBreadcrumb();
     }
     function scheduleScan() {
