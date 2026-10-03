@@ -24,6 +24,30 @@
         };
     }
 
+    // Activate a tab by its anchor. Prefer the jQuery UI tabs API (no click event, so the
+    // CMS's link handler can't fire a pjax-less ajax -> "Bad Request"); fall back to a click.
+    function activateTab(anchor) {
+        var jq = window.jQuery;
+        var li = anchor.closest ? anchor.closest('li.nav-item') : null;
+        var ul = anchor.closest ? anchor.closest('ul.nav-tabs') : null;
+        var tabset = ul ? ul.parentNode : null;
+        if (jq && tabset && li) {
+            var $ts = jq(tabset);
+            if ($ts.hasClass('ui-tabs') && $ts.data('uiTabs')) {
+                var index = $ts.children('ul.nav-tabs').children('li.nav-item').not('.bt-more').index(li);
+                if (index > -1) {
+                    try {
+                        $ts.tabs('option', 'active', index);
+                        return;
+                    } catch (e) {
+                        /* fall back */
+                    }
+                }
+            }
+        }
+        anchor.click();
+    }
+
     // setIcon('fa-solid fa-gear') renders as `font-icon-fa-solid fa-gear` (the template
     // forces a `font-icon-` prefix). Strip that prefix off Font Awesome tokens so FA renders.
     function normalizeFaIcons(root) {
@@ -209,8 +233,8 @@
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 closeAllMenus();
-                anchor.click(); // let the tabset activate the panel
-                setTimeout(function () { layout(ul); }, 0); // pull the now-active tab into view
+                activateTab(anchor);
+                setTimeout(function () { layout(ul); updateBreadcrumb(); }, 0); // pull the now-active tab into view
             });
             item.appendChild(link);
             menu.appendChild(item);
@@ -243,8 +267,9 @@
                 break;
             }
             crumbs.push({ label: (anchor.textContent || '').trim(), anchor: anchor });
-            var href = anchor.getAttribute('href') || '';
-            var id = href.charAt(0) === '#' ? href.slice(1) : '';
+            // Use .hash (not the href attribute) — the admin rewrites hrefs to full URLs.
+            var hash = anchor.hash || '';
+            var id = hash.charAt(0) === '#' ? hash.slice(1) : hash;
             var panel = id ? document.getElementById(id) : null;
             tabset = (panel && panel.classList.contains('ss-tabset')) ? panel : null;
         }
@@ -285,7 +310,7 @@
                 (function (anchor) {
                     item.addEventListener('click', function (e) {
                         e.preventDefault();
-                        anchor.click();
+                        activateTab(anchor);
                         setTimeout(updateBreadcrumb, 0);
                     });
                 })(crumb.anchor);
