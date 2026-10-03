@@ -145,7 +145,7 @@ li.bt-more .bt-more-menu > li > a.bt-active {
 /* A tab with a custom background (setColor with a bg) fades while inactive, so the
    selected tab stays obvious. */
 .ss-tabset > ul.nav-tabs a.nav-link.bt-colored-bg:not(.active) {
-    opacity: 0.5;
+    opacity: 0.72;
 }
 
 /* Level 3+: a touch smaller. */
