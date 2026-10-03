@@ -31,17 +31,15 @@
         var li = anchor.closest ? anchor.closest('li.nav-item') : null;
         var ul = anchor.closest ? anchor.closest('ul.nav-tabs') : null;
         var tabset = ul ? ul.parentNode : null;
-        if (jq && tabset && li) {
+        if (jq && tabset && li && jq(tabset).is('.ui-tabs') && typeof jq.fn.tabs === 'function') {
             var $ts = jq(tabset);
-            if ($ts.hasClass('ui-tabs') && $ts.data('uiTabs')) {
-                var index = $ts.children('ul.nav-tabs').children('li.nav-item').not('.bt-more').index(li);
-                if (index > -1) {
-                    try {
-                        $ts.tabs('option', 'active', index);
-                        return;
-                    } catch (e) {
-                        /* fall back */
-                    }
+            var index = $ts.children('ul.nav-tabs').children('li.nav-item').not('.bt-more').index(li);
+            if (index > -1) {
+                try {
+                    $ts.tabs('option', 'active', index);
+                    return;
+                } catch (e) {
+                    /* fall through to the last-resort click */
                 }
             }
         }
