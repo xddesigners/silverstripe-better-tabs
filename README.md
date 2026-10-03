@@ -7,6 +7,8 @@ single row. The active tab is always kept visible.
 Works with the tabs you already have — including **nested tabs**
 (`addFieldToTab('Root.Tab.SubTab', $field)`), which Silverstripe supports out of the box.
 
+![A CMS tab bar with per-tab icons and colours, an overflow "More" menu, and a tab group turned into a dropdown](docs/images/tabs.png)
+
 ## Requirements
 
 - Silverstripe Framework **6** / Admin **3**
@@ -35,6 +37,8 @@ The module adds a small CSS + JS enhancement to the CMS (via
   via PJAX (`MutationObserver`).
 
 It is dependency-free (no jQuery/entwine required) and makes no server-side or data changes.
+
+![The overflow "More" dropdown listing the tabs that didn't fit](docs/images/overflow-more.png)
 
 ## Tab icons & colours
 
@@ -111,6 +115,8 @@ Config::modify()->set(BetterTabs::class, 'view_tab_icons', [
 ]);
 ```
 
+![Icons on the Content, Settings and History view tabs](docs/images/view-tabs.png)
+
 ## Sub-tabs as a dropdown
 
 By default a tab group's sub-tabs render as an inline segmented pill bar. For a group with
@@ -127,6 +133,8 @@ $fields->fieldByName('Root.Deep')->setMode('dropdown'); // or ->enableDropdown()
 `setMode('pills')` (the default) switches it back. Only the group you mark changes; every other
 tabset keeps the pill bar. Flyouts open to the right, flipping left only when short on space.
 Pairs well with the breadcrumb.
+
+![A tab group opened as a dropdown menu with a flyout submenu, inheriting the tabs' icons and colours](docs/images/dropdown-menu.png)
 
 ## Theming (CSS variables)
 
@@ -149,11 +157,6 @@ CSS (each falls back to the matching Bootstrap/CMS variable):
 }
 ```
 
-<!-- TODO: add example screenshots before release -->
-
-
-
-
 ## Breadcrumb for deep tabs
 
 For tabsets nested two or more levels deep, you can show a breadcrumb of the active path
@@ -167,6 +170,8 @@ use SilverStripe\Core\Config\Config;
 
 Config::modify()->set(BetterTabs::class, 'breadcrumbs', true);
 ```
+
+![Nested sub-tabs as a segmented pill bar with a clickable breadcrumb below](docs/images/sub-tabs.png)
 
 ## Translations
 
