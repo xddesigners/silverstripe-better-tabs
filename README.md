@@ -82,9 +82,11 @@ Colour a tab's label (and optionally its background):
 ```php
 $fields->fieldByName('Root.Alerts')->setColor('#ffcc00');            // text colour
 $fields->fieldByName('Root.Live')->setColor('#ffffff', '#c0392b');   // text + background
+$fields->fieldByName('Root.Live')->setIconColor('#2ecc71');          // colour just the icon
 ```
 
-Works on both leaf Tabs and TabSets, at every level and in the overflow dropdown.
+Works on both leaf Tabs and TabSets, at every level and in the overflow dropdown. A tab given
+a background colour fades slightly while inactive, so the selected tab stays obvious.
 
 <!-- TODO: add example screenshots before release -->
 

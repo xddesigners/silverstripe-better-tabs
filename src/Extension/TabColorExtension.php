@@ -30,9 +30,27 @@ class TabColorExtension extends Extension
         return $this->owner;
     }
 
+    /**
+     * Colour just the tab's icon, independently of the label.
+     *
+     *     $fields->fieldByName('Root.Live')->setIcon('fa-solid fa-circle')->setIconColor('#2ecc71');
+     */
+    public function setIconColor(string $color)
+    {
+        if ($color !== '') {
+            $this->owner->setAttribute('data-bt-icon-color', $color);
+        }
+        return $this->owner;
+    }
+
     public function getColor(): string
     {
         return (string) $this->owner->getAttribute('data-bt-color');
+    }
+
+    public function getIconColor(): string
+    {
+        return (string) $this->owner->getAttribute('data-bt-icon-color');
     }
 
     public function getBgColor(): string

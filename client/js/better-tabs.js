@@ -39,7 +39,7 @@
     // Colours set in PHP via setColor() render as data-attributes on the tab's pane/wrapper;
     // copy them onto the matching nav tab link.
     function applyTabColors() {
-        Array.prototype.forEach.call(document.querySelectorAll('[data-bt-color],[data-bt-bg]'), function (el) {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-bt-color],[data-bt-bg],[data-bt-icon-color]'), function (el) {
             if (!el.id) {
                 return;
             }
@@ -49,12 +49,19 @@
             }
             var color = el.getAttribute('data-bt-color');
             var bg = el.getAttribute('data-bt-bg');
+            var iconColor = el.getAttribute('data-bt-icon-color');
             if (color) {
                 link.style.color = color;
             }
             if (bg) {
                 link.style.backgroundColor = bg;
                 link.classList.add('bt-colored-bg'); // CSS fades this while inactive
+            }
+            if (iconColor) {
+                var icon = link.querySelector('.tab__icon');
+                if (icon) {
+                    icon.style.color = iconColor;
+                }
             }
         });
     }
