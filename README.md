@@ -115,6 +115,11 @@ CSS (each falls back to the matching Bootstrap/CMS variable):
 
 
 
+## Translations
+
+The "More" overflow label is translatable via Silverstripe i18n, shown in the CMS user's
+locale. Translations ship for **en, nl, de, it, es, fr** (`lang/<locale>.yml`).
+
 ## License
 
 BSD-3-Clause.

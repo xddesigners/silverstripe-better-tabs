@@ -20,5 +20,12 @@ class LeftAndMainExtension extends Extension
         if ($css !== '') {
             Requirements::css($css);
         }
+
+        // Expose the translated "More" label to the client script.
+        $more = _t(BetterTabs::class . '.MORE', 'More');
+        Requirements::customScript(
+            'window.__betterTabsMore = ' . json_encode($more) . ';',
+            'better-tabs-more'
+        );
     }
 }
