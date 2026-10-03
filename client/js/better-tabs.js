@@ -37,6 +37,10 @@
             if (index > -1) {
                 try {
                     $ts.tabs('option', 'active', index);
+                    // Mirror a normal tab click: reflect the tab in the URL hash.
+                    if (anchor.hash) {
+                        location.hash = anchor.hash;
+                    }
                     return;
                 } catch (e) {
                     /* fall through to the last-resort click */
