@@ -134,17 +134,23 @@ li.bt-more .bt-more-menu > li > a.bt-active {
  * its native underline style.
  * ------------------------------------------------------------------ */
 .ss-tabset .ss-tabset > ul.nav-tabs {
-    display: flex;
+    display: inline-flex; /* compact by default (hugs its tabs) */
     flex-wrap: wrap;
     align-items: center;
     gap: 2px;
-    width: 100%;
+    width: auto;
     box-sizing: border-box;
     margin: 0 0 1rem;
     padding: 4px;
     border: 0 !important; /* also override the deeper native border-bottom on level 3+ */
     border-radius: 999px;
     background: var(--bt-track-bg);
+}
+
+/* Only stretch full-width when a More button is present, so it can right-align. */
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-has-more {
+    display: flex;
+    width: 100%;
 }
 
 .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item {

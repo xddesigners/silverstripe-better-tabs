@@ -152,6 +152,7 @@
         menu.textContent = '';
         more.style.display = 'none';
         more.classList.remove('bt-has-active', 'open');
+        ul.classList.remove('bt-has-more');
 
         if (!wraps(ul)) {
             return; // fits on one row
@@ -173,6 +174,8 @@
             more.style.display = 'none';
             return;
         }
+
+        ul.classList.add('bt-has-more'); // stretch the nested track so More can right-align
 
         // Build the dropdown, proxying clicks to the real tab anchors.
         var anyActive = false;
@@ -322,8 +325,10 @@
         });
 
         if (window.ResizeObserver) {
+            // Observe the parent (stable available width), not the ul — toggling the track's
+            // own width (compact <-> full when More appears) must not retrigger the observer.
             var ro = new ResizeObserver(debounce(function () { layout(ul); }, 100));
-            ro.observe(ul);
+            ro.observe(ul.parentNode || ul);
         }
 
         layout(ul);
