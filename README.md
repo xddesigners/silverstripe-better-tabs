@@ -86,7 +86,29 @@ $fields->fieldByName('Root.Live')->setIconColor('#2ecc71');          // colour j
 ```
 
 Works on both leaf Tabs and TabSets, at every level and in the overflow dropdown. A tab given
-a background colour fades slightly while inactive, so the selected tab stays obvious.
+a background colour fades slightly while inactive, so the selected tab stays obvious. In the
+"More" dropdown, a coloured tab keeps its text and icon colour (the background is not filled).
+
+## Theming (CSS variables)
+
+The module's default colours are CSS custom properties — override any of them in your admin
+CSS (each falls back to the matching Bootstrap/CMS variable):
+
+```css
+:root {
+    --bt-track-bg: #f0f1f3;         /* nested sub-tab track */
+    --bt-tab-color: #5b6168;        /* inactive sub-tab text */
+    --bt-tab-hover-color: #1a1a1a;
+    --bt-tab-active-bg: #ffffff;    /* selected sub-tab */
+    --bt-tab-active-color: #1a1a1a;
+    --bt-icon-color: inherit;       /* global tab-icon colour */
+    --bt-inactive-opacity: 0.72;    /* fade for coloured tabs while inactive */
+    --bt-dropdown-bg: #ffffff;
+    --bt-dropdown-color: #212529;
+    --bt-dropdown-border: rgba(0, 0, 0, 0.15);
+    --bt-dropdown-hover-bg: rgba(0, 0, 0, 0.06);
+}
+```
 
 <!-- TODO: add example screenshots before release -->
 

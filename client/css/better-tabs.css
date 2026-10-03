@@ -1,5 +1,28 @@
 /* Better Tabs — overflow "More" dropdown for CMS tab bars. */
 
+/* ------------------------------------------------------------------ *
+ * Overridable defaults. Set your own --bt-* values (e.g. on :root in
+ * your admin CSS) to restyle the nested sub-tabs, icons and dropdown.
+ * ------------------------------------------------------------------ */
+:root {
+    /* Nested sub-tab "segmented control" */
+    --bt-track-bg: var(--bs-tertiary-bg, #f0f1f3);
+    --bt-tab-color: var(--bs-secondary-color, #5b6168);
+    --bt-tab-hover-color: var(--bs-body-color, #1a1a1a);
+    --bt-tab-active-bg: var(--bs-body-bg, #fff);
+    --bt-tab-active-color: var(--bs-body-color, #1a1a1a);
+    --bt-inactive-opacity: 0.72;
+
+    /* Tab icon colour (default: follow the label). Per-tab setIconColor() overrides this. */
+    --bt-icon-color: inherit;
+
+    /* Overflow "More" dropdown */
+    --bt-dropdown-bg: var(--bs-body-bg, #fff);
+    --bt-dropdown-color: var(--bs-body-color, #212529);
+    --bt-dropdown-border: var(--bs-border-color, rgba(0, 0, 0, 0.15));
+    --bt-dropdown-hover-bg: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.06));
+}
+
 .ss-tabset > ul.nav-tabs {
     position: relative;
 }
@@ -39,9 +62,9 @@ li.bt-more .bt-more-menu {
     margin: 2px 0 0;
     padding: 4px 0;
     list-style: none;
-    background: var(--bs-body-bg, #fff);
-    color: var(--bs-body-color, #212529);
-    border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.15));
+    background: var(--bt-dropdown-bg);
+    color: var(--bt-dropdown-color);
+    border: 1px solid var(--bt-dropdown-border);
     border-radius: 4px;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
@@ -68,7 +91,7 @@ li.bt-more .bt-more-menu > li > a {
 
 li.bt-more .bt-more-menu > li > a:hover,
 li.bt-more .bt-more-menu > li > a:focus {
-    background: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.06));
+    background: var(--bt-dropdown-hover-bg);
 }
 
 li.bt-more .bt-more-menu > li > a.bt-active {
@@ -90,13 +113,14 @@ li.bt-more .bt-more-menu > li > a.bt-active {
 .ss-tabset > ul.nav-tabs .tab__icon {
     margin: 0;
     line-height: 1;
+    color: var(--bt-icon-color, inherit);
 }
 
 /* ------------------------------------------------------------------ *
- * Nested sub-tabs: a segmented control — rounded grey track, inactive
- * tabs are plain text, the active tab is a white rounded pill with a
- * soft shadow. Scoped to nested tabsets only (two+ .ss-tabset
- * ancestors), so the top bar keeps its native underline style.
+ * Nested sub-tabs: a segmented control — rounded track, inactive tabs
+ * are plain text, the active tab is a filled rounded pill. Scoped to
+ * nested tabsets only (two+ .ss-tabset ancestors), so the top bar keeps
+ * its native underline style.
  * ------------------------------------------------------------------ */
 .ss-tabset .ss-tabset > ul.nav-tabs {
     display: inline-flex;
@@ -107,7 +131,7 @@ li.bt-more .bt-more-menu > li > a.bt-active {
     padding: 4px;
     border: 0 !important; /* also override the deeper native border-bottom on level 3+ */
     border-radius: 999px;
-    background: var(--bs-tertiary-bg, #f0f1f3);
+    background: var(--bt-track-bg);
 }
 
 .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item {
@@ -122,7 +146,7 @@ li.bt-more .bt-more-menu > li > a.bt-active {
     border: 0 !important;
     border-radius: 999px;
     background: transparent;
-    color: var(--bs-secondary-color, #5b6168);
+    color: var(--bt-tab-color);
     font-size: 1rem;
     line-height: 1.5;
     white-space: nowrap;
@@ -131,21 +155,20 @@ li.bt-more .bt-more-menu > li > a.bt-active {
 }
 
 .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link:hover {
-    color: var(--bs-body-color, #1a1a1a);
+    color: var(--bt-tab-hover-color);
 }
 
-/* Active: white rounded pill with a soft shadow (jQuery UI marks the
-   <li>, Bootstrap the <a>). */
+/* Active pill (jQuery UI marks the <li>, Bootstrap the <a>). */
 .ss-tabset .ss-tabset > ul.nav-tabs > li.ui-tabs-active > a.nav-link,
 .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link.active {
-    background: var(--bs-body-bg, #fff);
-    color: var(--bs-body-color, #1a1a1a);
+    background: var(--bt-tab-active-bg);
+    color: var(--bt-tab-active-color);
 }
 
 /* A tab with a custom background (setColor with a bg) fades while inactive, so the
    selected tab stays obvious. */
 .ss-tabset > ul.nav-tabs a.nav-link.bt-colored-bg:not(.active) {
-    opacity: 0.72;
+    opacity: var(--bt-inactive-opacity);
 }
 
 /* Level 3+: a touch smaller. */
