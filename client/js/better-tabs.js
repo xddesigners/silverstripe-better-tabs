@@ -367,6 +367,23 @@
         }
     }
 
+    // Close the tab menu after an item is picked. Because the menu is shown on :hover, removing
+    // the "open" class isn't enough while the pointer is still over it — add a "bt-closing"
+    // flag that suppresses the hover until the pointer leaves (then a later hover reopens it).
+    function closeMenusAfterPick(fromEl) {
+        closeAllMenus();
+        var root = fromEl && fromEl.closest ? fromEl.closest('li.bt-tabmenu') : null;
+        if (!root || root.classList.contains('bt-closing')) {
+            return;
+        }
+        root.classList.add('bt-closing');
+        var clear = function () {
+            root.classList.remove('bt-closing');
+            root.removeEventListener('mouseleave', clear);
+        };
+        root.addEventListener('mouseleave', clear);
+    }
+
     // Build a dropdown list (reusing the "More" menu look) for one tabset's child tabs. A child
     // that is itself a tab group becomes a flyout submenu (recursively).
     function buildMenuLevel(tabset) {
@@ -420,7 +437,7 @@
                     e.stopPropagation();
                     var leaf = firstLeafAnchor(group);
                     if (leaf) {
-                        closeAllMenus();
+                        closeMenusAfterPick(link);
                         activatePath(leaf);
                         setTimeout(updateBreadcrumb, 0);
                     }
@@ -430,7 +447,7 @@
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    closeAllMenus();
+                    closeMenusAfterPick(link);
                     activatePath(anchor);
                     setTimeout(updateBreadcrumb, 0);
                 });
@@ -536,18 +553,25 @@
         });
     }
 
-    // Render (or remove) the breadcrumb of the active nested path, placed just below the
-    // deepest sub-tab strip.
-    function updateBreadcrumb() {
+    function removeBreadcrumb() {
         var old = document.querySelector('.bt-breadcrumb');
         if (old && old.parentNode) {
             old.parentNode.removeChild(old);
         }
+    }
+
+    // Render (or remove) the breadcrumb of the active nested path, placed just below the
+    // deepest sub-tab strip. Idempotent: if the correct breadcrumb is already in place it does
+    // nothing — rebuilding it on every scan would churn the DOM (the MutationObserver would
+    // re-trigger scan endlessly) and swallow clicks on the crumbs.
+    function updateBreadcrumb() {
         if (!breadcrumbsEnabled()) {
+            removeBreadcrumb();
             return;
         }
         var root = document.getElementById('Root');
         if (!root || !root.classList.contains('ss-tabset')) {
+            removeBreadcrumb();
             return;
         }
 
@@ -578,11 +602,23 @@
         }
 
         if (crumbs.length < 2 || !deepest) {
+            removeBreadcrumb();
             return;
         }
 
+        // Skip the rebuild when the right breadcrumb is already in place (avoids DOM churn).
+        var sig = deepest.id + '|' + crumbs.map(function (c) {
+            return c.label + '>' + (c.anchor.hash || '');
+        }).join('|');
+        var existing = document.querySelector('.bt-breadcrumb');
+        if (existing && existing.parentNode === deepest && existing.getAttribute('data-bt-sig') === sig) {
+            return;
+        }
+        removeBreadcrumb();
+
         var bc = document.createElement('div');
         bc.className = 'bt-breadcrumb';
+        bc.setAttribute('data-bt-sig', sig);
         crumbs.forEach(function (crumb, i) {
             if (i) {
                 var sep = document.createElement('span');
@@ -592,21 +628,21 @@
                 bc.appendChild(sep);
             }
             var isLast = i === crumbs.length - 1;
-            var item = document.createElement(isLast ? 'span' : 'a');
+            var item = document.createElement('a');
             item.className = 'bt-breadcrumb-item' + (isLast ? ' bt-current' : '');
             item.textContent = crumb.label;
-            if (!isLast && crumb.anchor) {
-                item.href = '#';
-                (function (anchor) {
-                    item.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        resetDescendants(anchor); // go to this tab's default child path
-                        activateTab(anchor);      // activate it + set the hash
-                        setTimeout(updateBreadcrumb, 0);
-                    });
-                })(crumb.anchor);
-            }
+            // Carry the real tab's full link (absolute URL incl. the #hash), so the crumb is a
+            // genuine link (copy / middle-click / hover preview) — the same target as the tab.
+            item.href = crumb.anchor.href || '#';
+            (function (anchor) {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    resetDescendants(anchor); // go to this tab's default child path
+                    activatePath(anchor);     // activate the whole chain + set the hash
+                    setTimeout(updateBreadcrumb, 0);
+                });
+            })(crumb.anchor);
             bc.appendChild(item);
         });
 

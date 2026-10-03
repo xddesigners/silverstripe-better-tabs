@@ -282,6 +282,12 @@ li.bt-tabmenu.open > .bt-tab-root-menu {
     display: block;
 }
 
+/* After picking an item, keep the menu closed even though the pointer is still over it —
+   cleared when the pointer leaves, so a later hover reopens it. */
+li.bt-tabmenu.bt-closing:hover > .bt-tab-root-menu {
+    display: none !important;
+}
+
 /* Tab menus hold flyouts, so they must not clip horizontally (unlike the scrolling
    "More" overflow menu). */
 .bt-tab-root-menu,
@@ -348,12 +354,14 @@ li.bt-tabmenu.bt-menu-right > .bt-tab-root-menu {
     text-decoration: none;
 }
 
-a.bt-breadcrumb-item:hover,
-a.bt-breadcrumb-item:focus {
+a.bt-breadcrumb-item:not(.bt-current):hover,
+a.bt-breadcrumb-item:not(.bt-current):focus {
     text-decoration: underline;
 }
 
 .bt-breadcrumb-item.bt-current {
     color: var(--bt-breadcrumb-current-color);
     font-weight: 600;
+    cursor: default;
+    text-decoration: none;
 }
