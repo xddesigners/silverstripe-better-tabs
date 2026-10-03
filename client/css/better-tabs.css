@@ -75,13 +75,19 @@ li.bt-more.open .bt-more-menu {
 
 li.bt-more .bt-more-menu > li {
     display: block;
+    float: none; /* counter jQuery UI's .ui-tabs-nav li { float: left } */
+    width: 100%;
     margin: 0;
+    padding: 0;
 }
 
 li.bt-more .bt-more-menu > li > a {
     display: flex;
     align-items: center;
     gap: 0.5em;
+    float: none;
+    width: 100%;
+    box-sizing: border-box;
     padding: 6px 16px;
     white-space: nowrap;
     color: inherit;
