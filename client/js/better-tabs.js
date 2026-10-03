@@ -169,6 +169,18 @@
     }
 
     function layout(ul) {
+        // A dropdown-marked nav is a hover dropdown, not an overflow row — skip the "More"
+        // overflow handling for it.
+        if (isDropdownNav(ul)) {
+            var leftover = ul.querySelector(':scope > li.bt-more');
+            if (leftover) {
+                leftover.style.display = 'none';
+            }
+            ul.classList.remove('bt-has-more');
+            refreshSubReserve(ul);
+            return;
+        }
+
         var more = ensureMore(ul);
         var menu = more.querySelector('.bt-more-menu');
         var tabs = realTabs(ul);
@@ -251,10 +263,104 @@
         return typeof window !== 'undefined' && !!window.__betterTabsBreadcrumbs;
     }
 
-    // Walk from a tabset down through the active tab at each level, collecting the chain.
-    function activeChain(root) {
+    // A nav renders as a dropdown when its own TabSet was marked in PHP with
+    // setMode('dropdown') / enableDropdown() (data-bt-mode="dropdown" on the tabset pane).
+    function isDropdownNav(ul) {
+        var tabset = ul.parentNode;
+        return !!(tabset && tabset.nodeType === 1 && tabset.matches &&
+            tabset.matches('.ss-tabset[data-bt-mode="dropdown"]'));
+    }
+
+    // Turn the nav into a compact dropdown: the tabset reserves one row (padding-top) and the
+    // (absolutely positioned) nav shows only the active tab until hovered — anchored directly
+    // under the tabset's own tab item in the parent bar.
+    function setupSubDropdown(ul) {
+        var tabset = ul.parentNode;
+        if (!tabset) {
+            return;
+        }
+        ul.classList.add('bt-subdd');
+        tabset.classList.add('bt-dd-mode');
+        if (realTabs(ul).length < 2) {
+            ul.classList.add('bt-single'); // nothing to drop down to
+        } else {
+            ul.classList.remove('bt-single');
+        }
+        refreshSubReserve(ul);
+    }
+
+    // Measure the collapsed trigger height (reserve that row) and align the dropdown under
+    // the tabset's own tab item in the parent bar.
+    function refreshSubReserve(ul) {
+        var tabset = ul.parentNode;
+        if (!tabset || !ul.classList.contains('bt-subdd')) {
+            return;
+        }
+        if (ul.matches && ul.matches(':hover')) {
+            return; // don't measure/realign the open (tall) state
+        }
+        var h = ul.offsetHeight; // absolute + only the active tab shown => trigger height
+        if (h > 0) {
+            ul.style.setProperty('--bt-subdd-trigger-h', h + 'px');
+            tabset.style.paddingTop = h + 'px';
+        }
+        // Align the dropdown horizontally under this tabset's own tab item.
+        var link = tabset.id ? document.getElementById('tab-' + tabset.id) : null;
+        if (link && link.offsetParent !== null) {
+            var left = link.getBoundingClientRect().left - tabset.getBoundingClientRect().left;
+            ul.style.left = (left > 0 ? left : 0) + 'px';
+        } else {
+            ul.style.left = '0px';
+        }
+    }
+
+    // Reset every nested tabset inside a tab's panel to its first tab (its default path).
+    function resetDescendants(anchor) {
+        var jq = window.jQuery;
+        if (!jq) {
+            return;
+        }
+        var hash = anchor.hash || '';
+        var id = hash.charAt(0) === '#' ? hash.slice(1) : hash;
+        var panel = id ? document.getElementById(id) : null;
+        if (!panel) {
+            return;
+        }
+        var tabsets = [];
+        if (panel.classList.contains('ss-tabset')) {
+            tabsets.push(panel);
+        }
+        Array.prototype.push.apply(tabsets, panel.querySelectorAll('.ss-tabset'));
+        tabsets.forEach(function (ts) {
+            try {
+                if (jq(ts).is('.ui-tabs')) {
+                    jq(ts).tabs('option', 'active', 0);
+                }
+            } catch (e) {
+                /* ignore */
+            }
+        });
+    }
+
+    // Render (or remove) the breadcrumb of the active nested path, placed just below the
+    // deepest sub-tab strip.
+    function updateBreadcrumb() {
+        var old = document.querySelector('.bt-breadcrumb');
+        if (old && old.parentNode) {
+            old.parentNode.removeChild(old);
+        }
+        if (!breadcrumbsEnabled()) {
+            return;
+        }
+        var root = document.getElementById('Root');
+        if (!root || !root.classList.contains('ss-tabset')) {
+            return;
+        }
+
+        // Walk the active chain, tracking the deepest tabset (its nav is the lowest strip).
         var crumbs = [];
         var tabset = root;
+        var deepest = null;
         var guard = 0;
         while (tabset && guard++ < 12) {
             var nav = tabset.querySelector(':scope > ul.nav-tabs');
@@ -270,33 +376,20 @@
                 break;
             }
             crumbs.push({ label: (anchor.textContent || '').trim(), anchor: anchor });
-            // Use .hash (not the href attribute) — the admin rewrites hrefs to full URLs.
+            deepest = tabset;
             var hash = anchor.hash || '';
             var id = hash.charAt(0) === '#' ? hash.slice(1) : hash;
             var panel = id ? document.getElementById(id) : null;
             tabset = (panel && panel.classList.contains('ss-tabset')) ? panel : null;
         }
-        return crumbs;
-    }
 
-    // Render (or remove) the breadcrumb of the active nested path at the top of #Root.
-    function updateBreadcrumb() {
-        var root = document.getElementById('Root');
-        if (!root || !root.classList.contains('ss-tabset')) {
+        if (crumbs.length < 2 || !deepest) {
             return;
         }
-        var existing = root.querySelector(':scope > .bt-breadcrumb');
-        var chain = breadcrumbsEnabled() ? activeChain(root) : [];
-        if (chain.length < 2) {
-            if (existing) {
-                existing.parentNode.removeChild(existing);
-            }
-            return;
-        }
-        var bc = existing || document.createElement('div');
+
+        var bc = document.createElement('div');
         bc.className = 'bt-breadcrumb';
-        bc.textContent = '';
-        chain.forEach(function (crumb, i) {
+        crumbs.forEach(function (crumb, i) {
             if (i) {
                 var sep = document.createElement('span');
                 sep.className = 'bt-breadcrumb-sep';
@@ -304,7 +397,7 @@
                 sep.textContent = '›';
                 bc.appendChild(sep);
             }
-            var isLast = i === chain.length - 1;
+            var isLast = i === crumbs.length - 1;
             var item = document.createElement(isLast ? 'span' : 'a');
             item.className = 'bt-breadcrumb-item' + (isLast ? ' bt-current' : '');
             item.textContent = crumb.label;
@@ -314,20 +407,20 @@
                     item.addEventListener('click', function (e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        activateTab(anchor);
+                        resetDescendants(anchor); // go to this tab's default child path
+                        activateTab(anchor);      // activate it + set the hash
                         setTimeout(updateBreadcrumb, 0);
                     });
                 })(crumb.anchor);
             }
             bc.appendChild(item);
         });
-        if (!existing) {
-            var nav = root.querySelector(':scope > ul.nav-tabs');
-            if (nav && nav.nextSibling) {
-                root.insertBefore(bc, nav.nextSibling);
-            } else {
-                root.appendChild(bc);
-            }
+
+        var deepestNav = deepest.querySelector(':scope > ul.nav-tabs');
+        if (deepestNav && deepestNav.nextSibling) {
+            deepest.insertBefore(bc, deepestNav.nextSibling);
+        } else {
+            deepest.appendChild(bc);
         }
     }
 
@@ -344,6 +437,10 @@
             return;
         }
         ul.setAttribute('data-bt', '1');
+
+        if (isDropdownNav(ul)) {
+            setupSubDropdown(ul);
+        }
 
         // Re-layout when a tab in this set is activated (the active tab may change).
         ul.addEventListener('click', function (e) {

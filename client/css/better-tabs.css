@@ -196,8 +196,123 @@ li.bt-more .bt-more-menu > li > a.bt-active {
     font-size: 0.9rem;
 }
 
-/* Breadcrumb of the active nested path (opt-in via config). */
-#Root > .bt-breadcrumb {
+/* ------------------------------------------------------------------ *
+ * Optional: nested sub-tabs as a compact hover dropdown
+ * (BetterTabs.nested_dropdown = true), instead of the segmented pill
+ * bar. The active sub-tab is the trigger (with a ▾ caret); its siblings
+ * drop down on hover. Saves space and pairs well with the breadcrumb.
+ * The parent tabset reserves one row (padding-top, set in JS) so the
+ * absolutely-positioned dropdown can float over the fields below it.
+ * ------------------------------------------------------------------ */
+.ss-tabset.bt-dd-mode {
+    position: relative;
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0;
+    width: auto; /* hug the widest item */
+    min-width: 150px;
+    margin: 0;
+    padding: 4px 30px 4px 4px; /* right room for the caret */
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: var(--bt-track-bg);
+    overflow: visible;
+}
+
+/* The ▾ caret that signals "this is a dropdown", centred on the trigger row. */
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: calc(var(--bt-subdd-trigger-h, 40px) / 2);
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+    color: var(--bt-tab-color);
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd.bt-single {
+    padding-right: 4px;
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd.bt-single::after {
+    display: none;
+}
+
+/* Collapsed: only the active sub-tab shows (the trigger); it sits on top. */
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.nav-item {
+    display: none;
+    width: 100%;
+    margin: 0;
+    order: 2;
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.ui-tabs-active {
+    display: block;
+    order: 1;
+}
+
+/* Open on hover/focus: reveal the siblings and give the panel a surface. */
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:not(.bt-single):hover > li.nav-item,
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:not(.bt-single):focus-within > li.nav-item {
+    display: block;
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:not(.bt-single):hover,
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:not(.bt-single):focus-within {
+    background: var(--bt-dropdown-bg);
+    border-color: var(--bt-dropdown-border);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.nav-item > a.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    width: 100%;
+    margin: 0;
+    padding: 5px 12px;
+    border: 0 !important;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--bt-tab-color);
+    font-size: 1rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    box-shadow: none;
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.ui-tabs-active > a.nav-link {
+    color: var(--bt-tab-active-color);
+}
+
+.ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd:hover > li.nav-item > a.nav-link:hover {
+    background: var(--bt-dropdown-hover-bg);
+    color: var(--bt-tab-hover-color);
+}
+
+/* Level 3+ dropdowns: match the smaller nested type scale. */
+.ss-tabset .ss-tabset .ss-tabset > ul.nav-tabs.bt-subdd > li.nav-item > a.nav-link {
+    font-size: 0.9rem;
+}
+
+/* Breadcrumb of the active nested path (opt-in via config). Rendered just below the
+   deepest sub-tab strip, above that panel's fields. */
+.bt-breadcrumb {
     display: flex;
     flex-wrap: wrap;
     align-items: center;

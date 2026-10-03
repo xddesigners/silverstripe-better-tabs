@@ -38,4 +38,37 @@ class TabSetIconExtension extends Extension
         self::$icons ??= new WeakMap();
         return self::$icons[$this->owner] ?? '';
     }
+
+    /**
+     * How this TabSet renders its sub-tabs. Opt-in, per tab group:
+     *
+     *     $fields->fieldByName('Root.Deep')->setMode('dropdown');
+     *
+     * - `'dropdown'` — a compact dropdown menu anchored under this group's own tab item.
+     * - `'pills'` (default) — the inline segmented pill bar.
+     *
+     * @param string $mode
+     */
+    public function setMode(string $mode): TabSet
+    {
+        $mode = strtolower(trim($mode));
+        if ($mode === 'dropdown') {
+            $this->owner->setAttribute('data-bt-mode', 'dropdown');
+        } else {
+            $this->owner->setAttribute('data-bt-mode', null); // back to the default pill bar
+        }
+        return $this->owner;
+    }
+
+    /**
+     * Convenience alias for setMode('dropdown') / setMode('pills').
+     *
+     *     $fields->fieldByName('Root.Deep')->enableDropdown();
+     *
+     * @param bool $enabled
+     */
+    public function enableDropdown(bool $enabled = true): TabSet
+    {
+        return $this->owner->setMode($enabled ? 'dropdown' : 'pills');
+    }
 }

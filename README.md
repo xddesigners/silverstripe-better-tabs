@@ -38,7 +38,15 @@ It is dependency-free (no jQuery/entwine required) and makes no server-side or d
 
 ## Tab icons & colours
 
-All configured in **PHP**, in `getCMSFields()` — no YAML per tab.
+All configured in **PHP**, in `getCMSFields()` — no YAML per tab. Every setter returns the
+field, so they chain:
+
+```php
+$fields->fieldByName('Root.Deep')
+    ->setMode('dropdown')
+    ->setIcon('fa-solid fa-layer-group')
+    ->setColor('#16a085');
+```
 
 ### Icons
 
@@ -89,6 +97,20 @@ Works on both leaf Tabs and TabSets, at every level and in the overflow dropdown
 and background colours all propagate). A tab given a background colour fades slightly while
 inactive, so the selected tab stays obvious.
 
+## Sub-tabs as a dropdown
+
+By default a tab group's sub-tabs render as an inline segmented pill bar. For a group with
+many (or deeply nested) sub-tabs you can instead render them as a compact **dropdown menu**,
+anchored directly under that group's own tab item — it shows the active sub-tab with a ▾ caret
+and opens the rest on hover. Opt in **per tab group**, in PHP:
+
+```php
+$fields->fieldByName('Root.Deep')->setMode('dropdown'); // or ->enableDropdown()
+```
+
+`setMode('pills')` (the default) switches it back. Only the group you mark changes; every other
+tabset keeps the pill bar. It pairs well with the breadcrumb below.
+
 ## Theming (CSS variables)
 
 The module's default colours are CSS custom properties — override any of them in your admin
@@ -118,8 +140,9 @@ CSS (each falls back to the matching Bootstrap/CMS variable):
 ## Breadcrumb for deep tabs
 
 For tabsets nested two or more levels deep, you can show a breadcrumb of the active path
-(e.g. "Deep › Account › Profile") above the panel — the crumbs are clickable. Enable it in
-`app/_config.php`:
+(e.g. "Deep › Account › Profile"), rendered just below the deepest sub-tab strip. The crumbs
+are clickable — selecting one jumps to that tab (resetting the levels below it to their first
+tab, like clicking the tab itself would). Enable it in `app/_config.php`:
 
 ```php
 use XD\BetterTabs\BetterTabs;
