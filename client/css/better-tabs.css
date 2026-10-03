@@ -40,10 +40,6 @@ li.bt-more {
     margin-left: auto !important;
 }
 
-/* Nested sub-tab tracks are content-width — keep their More inline (not pushed right). */
-.ss-tabset .ss-tabset > ul.nav-tabs > li.bt-more {
-    margin-left: 0 !important;
-}
 
 li.bt-more > .bt-more-toggle {
     cursor: pointer;
@@ -138,10 +134,12 @@ li.bt-more .bt-more-menu > li > a.bt-active {
  * its native underline style.
  * ------------------------------------------------------------------ */
 .ss-tabset .ss-tabset > ul.nav-tabs {
-    display: inline-flex;
+    display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 2px;
-    width: auto;
+    width: 100%;
+    box-sizing: border-box;
     margin: 0 0 1rem;
     padding: 4px;
     border: 0 !important; /* also override the deeper native border-bottom on level 3+ */
