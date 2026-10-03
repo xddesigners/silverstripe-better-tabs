@@ -143,6 +143,19 @@ li.bt-more.open .bt-more-menu {
     color: var(--bt-icon-color, inherit);
 }
 
+/* Icons injected onto the CMS edit-view tabs (Content/Settings/History, etc.). */
+.cms-tabset-nav-primary .nav-link.bt-has-view-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.cms-tabset-nav-primary .nav-link.bt-has-view-icon .tab__icon {
+    margin: 0;
+    line-height: 1;
+    color: var(--bt-icon-color, inherit);
+}
+
 /* ------------------------------------------------------------------ *
  * Nested sub-tabs: a segmented control — rounded track, inactive tabs
  * are plain text, the active tab is a filled rounded pill. Scoped to
@@ -250,6 +263,18 @@ li.bt-tabmenu > .bt-tab-root-menu {
     top: 100%;
     left: 0;
     right: auto;
+    margin-top: 0;
+}
+
+/* Transparent bridge over the gap between the tab and the menu, so moving the pointer down
+   into the menu doesn't cross an un-hovered strip (which would close it). */
+li.bt-tabmenu > .bt-tab-root-menu::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 12px;
 }
 
 li.bt-tabmenu:hover > .bt-tab-root-menu,
@@ -272,9 +297,9 @@ li.bt-tabmenu.open > .bt-tab-root-menu {
 .bt-more-menu li.bt-submenu > .bt-flyout {
     display: none;
     position: absolute;
-    top: -5px; /* line up with the parent row (menu has 4px padding + 1px border) */
+    top: -4px; /* line up with the parent row (menu has 3px padding + 1px border) */
     left: 100%;
-    margin: 0 0 0 1px;
+    margin: 0; /* touch the parent so moving across doesn't cross an un-hovered gap */
 }
 
 .bt-more-menu li.bt-submenu:hover > .bt-flyout,
@@ -292,7 +317,7 @@ li.bt-tabmenu.bt-menu-right > .bt-tab-root-menu {
 .bt-more-menu li.bt-submenu.bt-flyout-left > .bt-flyout {
     left: auto;
     right: 100%;
-    margin: 0 1px 0 0;
+    margin: 0;
 }
 
 /* The › affordance on a submenu parent. */

@@ -59,6 +59,21 @@ class BetterTabs
     private static bool $breadcrumbs = false;
 
     /**
+     * Icons for the CMS edit-view tabs (e.g. Content / Settings / History), which are not
+     * Tab/TabSet fields so setIcon() can't reach them. Map a key that appears as a path
+     * segment of the tab's link to an icon (a CMS `font-icon` name or Font Awesome classes):
+     *
+     *     Config::modify()->set(BetterTabs::class, 'view_tab_icons', [
+     *         'edit'     => 'edit-write',
+     *         'settings' => 'cog',
+     *         'history'  => 'back-in-time',
+     *     ]);
+     *
+     * @config
+     */
+    private static array $view_tab_icons = [];
+
+    /**
      * Resolve the Font Awesome stylesheet URL to load, or '' for none.
      */
     public static function fontAwesomeCss(): string

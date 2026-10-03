@@ -97,6 +97,20 @@ Works on both leaf Tabs and TabSets, at every level and in the overflow dropdown
 and background colours all propagate). A tab given a background colour fades slightly while
 inactive, so the selected tab stays obvious.
 
+## Icons on the CMS view tabs
+
+The edit-form view tabs (Content / Settings / History, and the like) aren't `Tab`/`TabSet`
+fields, so `setIcon()` can't reach them. Give them icons with a small config map — each key is
+matched against a path segment of the tab's link:
+
+```php
+Config::modify()->set(BetterTabs::class, 'view_tab_icons', [
+    'edit'     => 'edit-write',                   // Content   — a CMS font-icon…
+    'settings' => 'cog',                          // Settings
+    'history'  => 'fa-solid fa-clock-rotate-left',// History   — …or Font Awesome
+]);
+```
+
 ## Sub-tabs as a dropdown
 
 By default a tab group's sub-tabs render as an inline segmented pill bar. For a group with

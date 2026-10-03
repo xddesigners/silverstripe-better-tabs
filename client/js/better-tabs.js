@@ -50,6 +50,38 @@
         anchor.click();
     }
 
+    // Icons for the CMS edit-view tabs (Content/Settings/History, etc.), configured in PHP
+    // via BetterTabs.view_tab_icons as { pathKey: iconClass }. These tabs aren't Tab/TabSet
+    // fields, so we inject a .tab__icon the same way the tab template would render one.
+    function applyViewTabIcons() {
+        var map = (typeof window !== 'undefined' && window.__betterTabsViewIcons) || null;
+        if (!map || typeof map !== 'object') {
+            return;
+        }
+        var keys = Object.keys(map);
+        if (!keys.length) {
+            return;
+        }
+        Array.prototype.forEach.call(
+            document.querySelectorAll('.cms-tabset-nav-primary a.nav-link'),
+            function (link) {
+                if (link.querySelector('.tab__icon')) {
+                    return; // already has one
+                }
+                var href = link.getAttribute('href') || '';
+                var segments = href.split(/[\/?#]/);
+                var key = keys.filter(function (k) { return segments.indexOf(k) !== -1; })[0];
+                if (!key) {
+                    return;
+                }
+                var icon = document.createElement('span');
+                icon.className = 'tab__icon font-icon-' + map[key];
+                link.insertBefore(icon, link.firstChild);
+                link.classList.add('bt-has-view-icon');
+            }
+        );
+    }
+
     // setIcon('fa-solid fa-gear') renders as `font-icon-fa-solid fa-gear` (the template
     // forces a `font-icon-` prefix). Strip that prefix off Font Awesome tokens so FA renders.
     function normalizeFaIcons(root) {
@@ -626,6 +658,7 @@
     var scanScheduled = false;
     function scan() {
         scanScheduled = false;
+        applyViewTabIcons();
         normalizeFaIcons(document);
         applyTabColors();
         Array.prototype.forEach.call(getNavs(), enhance);
