@@ -230,6 +230,7 @@
             }
             link.addEventListener('click', function (e) {
                 e.preventDefault();
+                e.stopPropagation(); // don't let the CMS link handler navigate to the '#' href
                 closeAllMenus();
                 activateTab(anchor);
                 setTimeout(function () { layout(ul); updateBreadcrumb(); }, 0); // pull the now-active tab into view
@@ -308,6 +309,7 @@
                 (function (anchor) {
                     item.addEventListener('click', function (e) {
                         e.preventDefault();
+                        e.stopPropagation();
                         activateTab(anchor);
                         setTimeout(updateBreadcrumb, 0);
                     });
