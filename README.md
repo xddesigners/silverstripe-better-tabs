@@ -40,6 +40,14 @@ It is dependency-free (no jQuery/entwine required) and makes no server-side or d
 
 ![The overflow "More" dropdown listing the tabs that didn't fit](docs/images/overflow-more.png)
 
+The overflow menu is on by default. If you only want the other features (icons, colours,
+dropdown mode, breadcrumb) and would rather leave the tab bar native, turn it off in YAML:
+
+```yaml
+XD\BetterTabs\BetterTabs:
+  overflow_menu: false
+```
+
 ## Tab icons & colours
 
 All configured in **PHP**, in `getCMSFields()` — no YAML per tab. Every setter returns the
@@ -74,17 +82,15 @@ Pass Font Awesome classes to `setIcon()`:
 $fields->fieldByName('Root.Media')->setIcon('fa-solid fa-photo-film');
 ```
 
-Load Font Awesome in the CMS from your `app/_config.php` (PHP, not YAML):
+Enable Font Awesome in the CMS from your project YAML (e.g. `app/_config/better-tabs.yml`):
 
-```php
-use XD\BetterTabs\BetterTabs;
-use SilverStripe\Core\Config\Config;
+```yaml
+XD\BetterTabs\BetterTabs:
+  # Font Awesome Free (loaded from cdnjs):
+  include_fontawesome_free: true
 
-// Font Awesome Free (loaded from cdnjs):
-Config::modify()->set(BetterTabs::class, 'include_fontawesome_free', true);
-
-// …or Font Awesome Pro — point at your own kit/CSS and use Pro classes (fa-thin, fa-duotone, …):
-Config::modify()->set(BetterTabs::class, 'fontawesome_css', 'https://kit.fontawesome.com/XXXX.css');
+  # …or Font Awesome Pro — point at your own kit/CSS and use Pro classes (fa-thin, fa-duotone, …):
+  # fontawesome_css: 'https://kit.fontawesome.com/XXXX.css'
 ```
 
 ### Colours
@@ -104,15 +110,15 @@ inactive, so the selected tab stays obvious.
 ## Icons on the CMS view tabs
 
 The edit-form view tabs (Content / Settings / History, and the like) aren't `Tab`/`TabSet`
-fields, so `setIcon()` can't reach them. Give them icons with a small config map — each key is
+fields, so `setIcon()` can't reach them. Give them icons with a small YAML map — each key is
 matched against a path segment of the tab's link:
 
-```php
-Config::modify()->set(BetterTabs::class, 'view_tab_icons', [
-    'edit'     => 'edit-write',                   // Content   — a CMS font-icon…
-    'settings' => 'cog',                          // Settings
-    'history'  => 'fa-solid fa-clock-rotate-left',// History   — …or Font Awesome
-]);
+```yaml
+XD\BetterTabs\BetterTabs:
+  view_tab_icons:
+    edit: 'edit-write'                       # Content  — a CMS font-icon…
+    settings: 'cog'                          # Settings
+    history: 'fa-solid fa-clock-rotate-left' # History  — …or Font Awesome
 ```
 
 ![Icons on the Content, Settings and History view tabs](docs/images/view-tabs.png)
@@ -162,13 +168,19 @@ CSS (each falls back to the matching Bootstrap/CMS variable):
 For tabsets nested two or more levels deep, you can show a breadcrumb of the active path
 (e.g. "Deep › Account › Profile"), rendered just below the deepest sub-tab strip. The crumbs
 are clickable — selecting one jumps to that tab (resetting the levels below it to their first
-tab, like clicking the tab itself would). Enable it in `app/_config.php`:
+tab, like clicking the tab itself would).
+
+Enable it per form in `getCMSFields()`:
 
 ```php
-use XD\BetterTabs\BetterTabs;
-use SilverStripe\Core\Config\Config;
+$fields->fieldByName('Root')->enableBreadcrumbs();
+```
 
-Config::modify()->set(BetterTabs::class, 'breadcrumbs', true);
+…or globally for every CMS form, in your project YAML:
+
+```yaml
+XD\BetterTabs\BetterTabs:
+  breadcrumbs: true
 ```
 
 ![Nested sub-tabs as a segmented pill bar with a clickable breadcrumb below](docs/images/sub-tabs.png)

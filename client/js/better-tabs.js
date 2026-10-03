@@ -209,6 +209,17 @@
             return;
         }
 
+        // Overflow menu disabled by config — leave the bar native (tabs just wrap).
+        if (!overflowEnabled()) {
+            realTabs(ul).forEach(function (li) { li.style.display = ''; });
+            var disabledMore = ul.querySelector(':scope > li.bt-more');
+            if (disabledMore) {
+                disabledMore.style.display = 'none';
+            }
+            ul.classList.remove('bt-has-more');
+            return;
+        }
+
         var more = ensureMore(ul);
         var menu = more.querySelector('.bt-more-menu');
         var tabs = realTabs(ul);
@@ -287,8 +298,14 @@
         }
     }
 
+    function overflowEnabled() {
+        // Default on; disabled only when the config explicitly set it false.
+        return typeof window === 'undefined' || window.__betterTabsOverflow !== false;
+    }
+
     function breadcrumbsEnabled() {
-        return typeof window !== 'undefined' && !!window.__betterTabsBreadcrumbs;
+        return (typeof window !== 'undefined' && !!window.__betterTabsBreadcrumbs)
+            || !!document.querySelector('.ss-tabset[data-bt-breadcrumbs]');
     }
 
     // A nav lives inside a tab group that was marked in PHP with setMode('dropdown') /

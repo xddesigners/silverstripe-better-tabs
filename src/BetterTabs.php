@@ -51,6 +51,15 @@ class BetterTabs
     private static string $fontawesome_css = '';
 
     /**
+     * Collapse overflowing tabs into a "More" dropdown when the bar would wrap — the module's
+     * core behaviour, on by default. Set to false to leave the tab bar native (tabs just wrap),
+     * e.g. when you only want the icon/colour options and not the overflow menu.
+     *
+     * @config
+     */
+    private static bool $overflow_menu = true;
+
+    /**
      * Show a breadcrumb of the active nested-tab path (e.g. "Deep › Account › Profile")
      * above the panel, for tabsets nested two or more levels deep.
      *

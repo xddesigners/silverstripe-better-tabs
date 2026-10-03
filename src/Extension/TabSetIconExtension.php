@@ -71,4 +71,19 @@ class TabSetIconExtension extends Extension
     {
         return $this->owner->setMode($enabled ? 'dropdown' : 'pills');
     }
+
+    /**
+     * Show the deep-nested-path breadcrumb for this form, from getCMSFields() (no YAML needed):
+     *
+     *     $fields->fieldByName('Root')->enableBreadcrumbs();
+     *
+     * Equivalent to the global `BetterTabs.breadcrumbs` config, but scoped to where you call it.
+     *
+     * @param bool $enabled
+     */
+    public function enableBreadcrumbs(bool $enabled = true): TabSet
+    {
+        $this->owner->setAttribute('data-bt-breadcrumbs', $enabled ? '1' : null);
+        return $this->owner;
+    }
 }
