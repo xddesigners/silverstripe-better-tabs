@@ -6,8 +6,16 @@ SilverStripe\Admin\LeftAndMain:
     - 'xddesigners/silverstripe-better-tabs:client/js/better-tabs.js'
   extra_requirements_css:
     - 'xddesigners/silverstripe-better-tabs:client/css/better-tabs.css'
+  extensions:
+    - XD\BetterTabs\Extension\LeftAndMainExtension
 
-# Give TabSets icon support too (Tab already has setIcon natively).
+# Give TabSets icon support too (Tab already has setIcon natively), and both
+# Tab and TabSet a setColor().
 SilverStripe\Forms\TabSet:
   extensions:
     - XD\BetterTabs\Extension\TabSetIconExtension
+    - XD\BetterTabs\Extension\TabColorExtension
+
+SilverStripe\Forms\Tab:
+  extensions:
+    - XD\BetterTabs\Extension\TabColorExtension

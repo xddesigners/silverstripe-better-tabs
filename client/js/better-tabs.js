@@ -22,6 +22,42 @@
         };
     }
 
+    // setIcon('fa-solid fa-gear') renders as `font-icon-fa-solid fa-gear` (the template
+    // forces a `font-icon-` prefix). Strip that prefix off Font Awesome tokens so FA renders.
+    function normalizeFaIcons(root) {
+        var scope = root && root.querySelectorAll ? root : document;
+        Array.prototype.forEach.call(scope.querySelectorAll('.tab__icon'), function (icon) {
+            Array.prototype.slice.call(icon.classList).forEach(function (cls) {
+                if (cls.indexOf('font-icon-fa-') === 0) {
+                    icon.classList.remove(cls);
+                    icon.classList.add(cls.slice('font-icon-'.length));
+                }
+            });
+        });
+    }
+
+    // Colours set in PHP via setColor() render as data-attributes on the tab's pane/wrapper;
+    // copy them onto the matching nav tab link.
+    function applyTabColors() {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-bt-color],[data-bt-bg]'), function (el) {
+            if (!el.id) {
+                return;
+            }
+            var link = document.getElementById('tab-' + el.id);
+            if (!link) {
+                return;
+            }
+            var color = el.getAttribute('data-bt-color');
+            var bg = el.getAttribute('data-bt-bg');
+            if (color) {
+                link.style.color = color;
+            }
+            if (bg) {
+                link.style.backgroundColor = bg;
+            }
+        });
+    }
+
     // Is the nav currently spanning more than one row?
     function wraps(ul) {
         var visible = Array.prototype.filter.call(ul.children, function (li) {
@@ -150,6 +186,9 @@
             label.className = 'bt-more-label';
             label.textContent = (anchor.textContent || '').trim();
             link.appendChild(label);
+            if (anchor.style.color) {
+                link.style.color = anchor.style.color;
+            }
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 closeAllMenus();
@@ -197,6 +236,8 @@
     var scanScheduled = false;
     function scan() {
         scanScheduled = false;
+        normalizeFaIcons(document);
+        applyTabColors();
         Array.prototype.forEach.call(getNavs(), enhance);
     }
     function scheduleScan() {

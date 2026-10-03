@@ -36,9 +36,13 @@ The module adds a small CSS + JS enhancement to the CMS (via
 
 It is dependency-free (no jQuery/entwine required) and makes no server-side or data changes.
 
-## Tab icons
+## Tab icons & colours
 
-Give any tab a small icon with `setIcon()` (a `font-icon` identifier, without the
+All configured in **PHP**, in `getCMSFields()` — no YAML per tab.
+
+### Icons
+
+Give any tab an icon with `setIcon()`. Use a built-in CMS `font-icon` name (without the
 `font-icon-` prefix):
 
 ```php
@@ -46,10 +50,46 @@ $fields->fieldByName('Root.Main')->setIcon('block-content');   // a leaf Tab (na
 $fields->fieldByName('Root.Settings')->setIcon('cog');         // a TabSet (tab group)
 ```
 
-`Tab::setIcon()` is built into Silverstripe; this module adds the same `setIcon()`/`getIcon()`
-to **`TabSet`** (via `TabSetIconExtension`) so a tab *group* can have an icon too. Icons render
-through the native `TabSet.ss` template, are vertically aligned with the label, and are carried
-into the "More" overflow dropdown.
+`Tab::setIcon()` is built into Silverstripe; this module adds the same to **`TabSet`** so a
+tab *group* can have an icon too. Icons are vertically aligned with the label and carried into
+the overflow dropdown.
+
+### Font Awesome icons
+
+Pass Font Awesome classes to `setIcon()`:
+
+```php
+$fields->fieldByName('Root.Media')->setIcon('fa-solid fa-photo-film');
+```
+
+Load Font Awesome in the CMS from your `app/_config.php` (PHP, not YAML):
+
+```php
+use XD\BetterTabs\BetterTabs;
+use SilverStripe\Core\Config\Config;
+
+// Font Awesome Free (loaded from cdnjs):
+Config::modify()->set(BetterTabs::class, 'include_fontawesome_free', true);
+
+// …or Font Awesome Pro — point at your own kit/CSS and use Pro classes (fa-thin, fa-duotone, …):
+Config::modify()->set(BetterTabs::class, 'fontawesome_css', 'https://kit.fontawesome.com/XXXX.css');
+```
+
+### Colours
+
+Colour a tab's label (and optionally its background):
+
+```php
+$fields->fieldByName('Root.Alerts')->setColor('#ffcc00');            // text colour
+$fields->fieldByName('Root.Live')->setColor('#ffffff', '#c0392b');   // text + background
+```
+
+Works on both leaf Tabs and TabSets, at every level and in the overflow dropdown.
+
+<!-- TODO: add example screenshots before release -->
+
+
+
 
 ## License
 
