@@ -21,6 +21,10 @@
     --bt-dropdown-color: var(--bs-body-color, #212529);
     --bt-dropdown-border: var(--bs-border-color, rgba(0, 0, 0, 0.15));
     --bt-dropdown-hover-bg: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.06));
+
+    /* Breadcrumb (deep nested path) */
+    --bt-breadcrumb-color: var(--bs-secondary-color, #6b7280);
+    --bt-breadcrumb-current-color: var(--bs-body-color, #1a1a1a);
 }
 
 .ss-tabset > ul.nav-tabs {
@@ -181,4 +185,34 @@ li.bt-more .bt-more-menu > li > a.bt-active {
 .ss-tabset .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
     padding: 3px 13px;
     font-size: 0.9rem;
+}
+
+/* Breadcrumb of the active nested path (opt-in via config). */
+#Root > .bt-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35em;
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    color: var(--bt-breadcrumb-color);
+}
+
+.bt-breadcrumb-sep {
+    opacity: 0.55;
+}
+
+.bt-breadcrumb-item {
+    color: inherit;
+    text-decoration: none;
+}
+
+a.bt-breadcrumb-item:hover,
+a.bt-breadcrumb-item:focus {
+    text-decoration: underline;
+}
+
+.bt-breadcrumb-item.bt-current {
+    color: var(--bt-breadcrumb-current-color);
+    font-weight: 600;
 }

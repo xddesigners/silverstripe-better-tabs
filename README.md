@@ -85,9 +85,9 @@ $fields->fieldByName('Root.Live')->setColor('#ffffff', '#c0392b');   // text + b
 $fields->fieldByName('Root.Live')->setIconColor('#2ecc71');          // colour just the icon
 ```
 
-Works on both leaf Tabs and TabSets, at every level and in the overflow dropdown. A tab given
-a background colour fades slightly while inactive, so the selected tab stays obvious. In the
-"More" dropdown, a coloured tab keeps its text and icon colour (the background is not filled).
+Works on both leaf Tabs and TabSets, at every level and in the overflow dropdown (text, icon
+and background colours all propagate). A tab given a background colour fades slightly while
+inactive, so the selected tab stays obvious.
 
 ## Theming (CSS variables)
 
@@ -114,6 +114,19 @@ CSS (each falls back to the matching Bootstrap/CMS variable):
 
 
 
+
+## Breadcrumb for deep tabs
+
+For tabsets nested two or more levels deep, you can show a breadcrumb of the active path
+(e.g. "Deep › Account › Profile") above the panel — the crumbs are clickable. Enable it in
+`app/_config.php`:
+
+```php
+use XD\BetterTabs\BetterTabs;
+use SilverStripe\Core\Config\Config;
+
+Config::modify()->set(BetterTabs::class, 'breadcrumbs', true);
+```
 
 ## Translations
 

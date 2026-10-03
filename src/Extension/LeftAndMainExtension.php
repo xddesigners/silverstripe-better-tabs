@@ -21,11 +21,13 @@ class LeftAndMainExtension extends Extension
             Requirements::css($css);
         }
 
-        // Expose the translated "More" label to the client script.
+        // Expose the translated "More" label + options to the client script.
         $more = _t(BetterTabs::class . '.MORE', 'More');
+        $breadcrumbs = BetterTabs::config()->get('breadcrumbs') ? 'true' : 'false';
         Requirements::customScript(
-            'window.__betterTabsMore = ' . json_encode($more) . ';',
-            'better-tabs-more'
+            'window.__betterTabsMore = ' . json_encode($more) . ';'
+            . 'window.__betterTabsBreadcrumbs = ' . $breadcrumbs . ';',
+            'better-tabs-config'
         );
     }
 }

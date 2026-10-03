@@ -200,6 +200,9 @@
             if (anchor.style.color) {
                 link.style.color = anchor.style.color;
             }
+            if (anchor.style.backgroundColor) {
+                link.style.backgroundColor = anchor.style.backgroundColor;
+            }
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 closeAllMenus();
@@ -211,6 +214,88 @@
         });
         if (anyActive) {
             more.classList.add('bt-has-active');
+        }
+    }
+
+    function breadcrumbsEnabled() {
+        return typeof window !== 'undefined' && !!window.__betterTabsBreadcrumbs;
+    }
+
+    // Walk from a tabset down through the active tab at each level, collecting the chain.
+    function activeChain(root) {
+        var crumbs = [];
+        var tabset = root;
+        var guard = 0;
+        while (tabset && guard++ < 12) {
+            var nav = tabset.querySelector(':scope > ul.nav-tabs');
+            if (!nav) {
+                break;
+            }
+            var activeLi = nav.querySelector(':scope > li.ui-tabs-active');
+            if (!activeLi) {
+                break;
+            }
+            var anchor = activeLi.querySelector('a.nav-link');
+            if (!anchor) {
+                break;
+            }
+            crumbs.push({ label: (anchor.textContent || '').trim(), anchor: anchor });
+            var href = anchor.getAttribute('href') || '';
+            var id = href.charAt(0) === '#' ? href.slice(1) : '';
+            var panel = id ? document.getElementById(id) : null;
+            tabset = (panel && panel.classList.contains('ss-tabset')) ? panel : null;
+        }
+        return crumbs;
+    }
+
+    // Render (or remove) the breadcrumb of the active nested path at the top of #Root.
+    function updateBreadcrumb() {
+        var root = document.getElementById('Root');
+        if (!root || !root.classList.contains('ss-tabset')) {
+            return;
+        }
+        var existing = root.querySelector(':scope > .bt-breadcrumb');
+        var chain = breadcrumbsEnabled() ? activeChain(root) : [];
+        if (chain.length < 2) {
+            if (existing) {
+                existing.parentNode.removeChild(existing);
+            }
+            return;
+        }
+        var bc = existing || document.createElement('div');
+        bc.className = 'bt-breadcrumb';
+        bc.textContent = '';
+        chain.forEach(function (crumb, i) {
+            if (i) {
+                var sep = document.createElement('span');
+                sep.className = 'bt-breadcrumb-sep';
+                sep.setAttribute('aria-hidden', 'true');
+                sep.textContent = '›';
+                bc.appendChild(sep);
+            }
+            var isLast = i === chain.length - 1;
+            var item = document.createElement(isLast ? 'span' : 'a');
+            item.className = 'bt-breadcrumb-item' + (isLast ? ' bt-current' : '');
+            item.textContent = crumb.label;
+            if (!isLast && crumb.anchor) {
+                item.href = '#';
+                (function (anchor) {
+                    item.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        anchor.click();
+                        setTimeout(updateBreadcrumb, 0);
+                    });
+                })(crumb.anchor);
+            }
+            bc.appendChild(item);
+        });
+        if (!existing) {
+            var nav = root.querySelector(':scope > ul.nav-tabs');
+            if (nav && nav.nextSibling) {
+                root.insertBefore(bc, nav.nextSibling);
+            } else {
+                root.appendChild(bc);
+            }
         }
     }
 
@@ -233,7 +318,7 @@
             if (e.target.closest('.bt-more')) {
                 return;
             }
-            setTimeout(function () { layout(ul); }, 0);
+            setTimeout(function () { layout(ul); updateBreadcrumb(); }, 0);
         });
 
         if (window.ResizeObserver) {
@@ -250,6 +335,7 @@
         normalizeFaIcons(document);
         applyTabColors();
         Array.prototype.forEach.call(getNavs(), enhance);
+        updateBreadcrumb();
     }
     function scheduleScan() {
         if (scanScheduled) {

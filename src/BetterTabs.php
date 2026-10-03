@@ -51,6 +51,14 @@ class BetterTabs
     private static string $fontawesome_css = '';
 
     /**
+     * Show a breadcrumb of the active nested-tab path (e.g. "Deep › Account › Profile")
+     * above the panel, for tabsets nested two or more levels deep.
+     *
+     * @config
+     */
+    private static bool $breadcrumbs = false;
+
+    /**
      * Resolve the Font Awesome stylesheet URL to load, or '' for none.
      */
     public static function fontAwesomeCss(): string
