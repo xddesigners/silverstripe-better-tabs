@@ -28,15 +28,17 @@
     // CMS's link handler can't fire a pjax-less ajax -> "Bad Request"); fall back to a click.
     function activateTab(anchor) {
         var jq = window.jQuery;
-        var li = anchor.closest ? anchor.closest('li.nav-item') : null;
-        var ul = anchor.closest ? anchor.closest('ul.nav-tabs') : null;
-        var tabset = ul ? ul.parentNode : null;
-        if (jq && tabset && li && jq(tabset).is('.ui-tabs') && typeof jq.fn.tabs === 'function') {
-            var $ts = jq(tabset);
-            var index = $ts.children('ul.nav-tabs').children('li.nav-item').not('.bt-more').index(li);
+        var li = anchor.closest ? anchor.closest('li') : null;
+        var ul = li ? li.parentNode : null;
+        // The jQuery UI tabs widget: for a Bootstrap `.ss-tabset` it's the ul's parent; for the
+        // CMS primary nav (`.cms-tabset-nav-primary`, e.g. SiteConfig) it's an ancestor a few
+        // levels up. `closest('.ui-tabs')` finds it in both cases.
+        var tabset = anchor.closest ? anchor.closest('.ui-tabs') : null;
+        if (jq && tabset && li && ul && typeof jq.fn.tabs === 'function' && jq(tabset).is('.ui-tabs')) {
+            var index = realTabs(ul).indexOf(li);
             if (index > -1) {
                 try {
-                    $ts.tabs('option', 'active', index);
+                    jq(tabset).tabs('option', 'active', index);
                     // Mirror a normal tab click: reflect the tab in the URL hash.
                     if (anchor.hash) {
                         location.hash = anchor.hash;
@@ -72,6 +74,13 @@
                 var segments = href.split(/[\/?#]/);
                 var key = keys.filter(function (k) { return segments.indexOf(k) !== -1; })[0];
                 if (!key) {
+                    return;
+                }
+                // Only the real edit-view tabs, whose link is admin/<section>/<key>/show/<id>. A
+                // form tab that merely shares the segment — e.g. SiteConfig's admin/settings#Root_*
+                // (here 'settings' is the admin route, not a view) — is skipped. Matching on the
+                // path shape is robust even before jQuery UI rewrites the anchor with its #hash.
+                if (segments[segments.indexOf(key) + 1] !== 'show') {
                     return;
                 }
                 var icon = document.createElement('span');
@@ -143,9 +152,12 @@
         return false;
     }
 
+    // Tab <li>s in a nav, excluding our own "More" item. Handles both the Bootstrap tabsets
+    // (`li.nav-item > a.nav-link`) and the CMS primary nav (`li.ui-tabs-tab > a.ui-tabs-anchor`).
     function realTabs(ul) {
         return Array.prototype.filter.call(ul.children, function (li) {
-            return li.classList.contains('nav-item') && !li.classList.contains('bt-more');
+            return li.tagName === 'LI' && !li.classList.contains('bt-more')
+                && !!li.querySelector(':scope > a.nav-link, :scope > a.ui-tabs-anchor');
         });
     }
 
@@ -162,8 +174,15 @@
         more.className = 'nav-item bt-more';
         more.style.display = 'none';
 
+        // On the CMS primary nav (jQuery UI tabs, e.g. SiteConfig) borrow the tab classes so the
+        // More item inherits the native tab box; `bt-more-primary` hooks the module's own CSS.
+        var primary = ul.classList.contains('cms-tabset-nav-primary');
+        if (primary) {
+            more.classList.add('ui-tabs-tab', 'ui-corner-top', 'ui-state-default', 'ui-tab', 'bt-more-primary');
+        }
+
         var toggle = document.createElement('a');
-        toggle.className = 'nav-link bt-more-toggle';
+        toggle.className = 'nav-link bt-more-toggle' + (primary ? ' ui-tabs-anchor' : '');
         toggle.href = '#';
         toggle.setAttribute('role', 'button');
         toggle.setAttribute('aria-haspopup', 'true');
@@ -694,7 +713,22 @@
     }
 
     function getNavs() {
-        return document.querySelectorAll('.ss-tabset > ul.nav-tabs');
+        var navs = Array.prototype.slice.call(document.querySelectorAll('.ss-tabset > ul.nav-tabs'));
+        // Add the CMS primary nav (jQuery UI tabs) only when it drives IN-PAGE panels — e.g.
+        // SiteConfig, where the form's Root.* tabs are promoted to the primary bar and can
+        // overflow onto two rows. The page view-tabs (Content/Settings/History) live in the same
+        // bar but navigate to other URLs; leave those alone (they must never collapse).
+        Array.prototype.forEach.call(
+            document.querySelectorAll('ul.cms-tabset-nav-primary.ui-tabs-nav'),
+            function (ul) {
+                var first = ul.querySelector(':scope > li > a');
+                var hash = first ? (first.hash || '') : '';
+                if (hash.length > 1 && document.getElementById(hash.slice(1))) {
+                    navs.push(ul);
+                }
+            }
+        );
+        return navs;
     }
 
     function layoutAll() {
@@ -710,6 +744,24 @@
         // Hidden navs inside a dropdown-mode group are driven by the menu, not enhanced here.
         if (inMarkedSubtree(ul)) {
             return;
+        }
+
+        // The CMS sizes the primary tab holder to its content and lets the title/info area grow,
+        // so the holder stays narrow and a right-floated "More" would sit just after the tabs.
+        // Let the holder grow to fill its row so the "More" reaches the far right of the header.
+        if (ul.classList.contains('cms-tabset-nav-primary')) {
+            var holder = ul.parentElement;
+            if (holder && holder.classList.contains('cms-content-header-tabs')) {
+                holder.style.flexGrow = '1';
+                holder.style.minWidth = '0';
+                // Flag the header so the stylesheet can relax its fixed min-height (see CSS): the
+                // CMS centres a fixed-height header, which drops the active-tab indicator below the
+                // header border once the tab bar is as tall as (or taller than) that min-height.
+                var header = holder.parentElement;
+                if (header && header.classList.contains('cms-content-header')) {
+                    header.classList.add('bt-tabset-header');
+                }
+            }
         }
 
         // Re-layout when a tab in this set is activated (the active tab may change).

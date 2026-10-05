@@ -40,6 +40,31 @@ li.bt-more {
     margin-left: auto !important;
 }
 
+/* The CMS primary nav (jQuery UI tabs, e.g. SiteConfig) is float-based and shrink-wraps, so make
+   the *enhanced* one span the full header width and float the More item to the far right edge.
+   Keep display:inline-block (NOT block) so the nav still contains its floated tabs — otherwise it
+   collapses and the active-tab indicator drops below the nav line. Scoped to [data-bt] so the
+   3-tab view-tab nav is left untouched. */
+ul.cms-tabset-nav-primary.ui-tabs-nav[data-bt="1"] {
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+ul.cms-tabset-nav-primary[data-bt="1"] > li.bt-more {
+    float: right !important;
+    margin-left: 0 !important;
+}
+
+/* The CMS header has a fixed `min-height` and `align-items: center`; once the header content (the
+   title + the primary tab bar) is as tall as that min-height — or wraps — the fixed height clips
+   it and the active-tab indicator drops below the header's bottom border. `min-height: auto` lets
+   the header grow to its content so the indicator sits flush on the border again. Scoped (via the
+   JS-added class) to headers whose primary tab bar we enhanced. */
+.cms-content-header.bt-tabset-header {
+    min-height: auto;
+}
+
 
 li.bt-more > .bt-more-toggle {
     cursor: pointer;

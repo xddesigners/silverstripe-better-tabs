@@ -28,9 +28,10 @@ existing CMS tab bars automatically.
 The module adds a small CSS + JS enhancement to the CMS (via
 `LeftAndMain.extra_requirements_javascript` / `_css`). The script:
 
-- watches each `.ss-tabset > ul.nav-tabs`; when it wraps, it hides the trailing tabs and lists
-  them in a "More ▾" dropdown (keeping the active tab visible, and flagging "More" when the
-  active tab lives inside it);
+- watches each `.ss-tabset > ul.nav-tabs` — and the CMS **primary** tab bar (jQuery-UI tabs,
+  e.g. the SiteConfig "Settings" form, where the root tabs are promoted to the header); when one
+  wraps, it hides the trailing tabs and lists them in a "More ▾" dropdown (keeping the active tab
+  visible, and flagging "More" when the active tab lives inside it);
 - leaves the tabs' native click behaviour intact — the real tab elements stay in the DOM
   (just hidden) and the dropdown proxies clicks to them;
 - re-applies on window/panel resize (`ResizeObserver`) and after the CMS swaps in new content
