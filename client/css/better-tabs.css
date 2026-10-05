@@ -184,17 +184,19 @@ li.bt-more.open .bt-more-menu {
 /* ------------------------------------------------------------------ *
  * Nested sub-tabs: a segmented control — rounded track, inactive tabs
  * are plain text, the active tab is a filled rounded pill. Scoped to
- * nested tabsets only (two+ .ss-tabset ancestors), so the top bar keeps
- * its native underline style.
+ * any sub-tabset (a `.ss-tabset` other than the form root `#Root`) — this
+ * covers both nested tabs on a normal edit form AND the sub-tabsets under a
+ * SiteConfig/SingleRecordAdmin primary tab — so only the top bar keeps its
+ * native underline style.
  * ------------------------------------------------------------------ */
-.ss-tabset .ss-tabset > ul.nav-tabs {
+.ss-tabset:not(#Root) > ul.nav-tabs {
     display: inline-flex; /* compact by default (hugs its tabs) */
     flex-wrap: wrap;
     align-items: center;
     gap: 2px;
     width: auto;
     box-sizing: border-box;
-    margin: 0 0 1rem;
+    margin: 0 0 1.5rem;
     padding: 4px;
     border: 0 !important; /* also override the deeper native border-bottom on level 3+ */
     border-radius: 999px;
@@ -202,18 +204,18 @@ li.bt-more.open .bt-more-menu {
 }
 
 /* Only stretch full-width when a More button is present, so it can right-align. */
-.ss-tabset .ss-tabset > ul.nav-tabs.bt-has-more {
+.ss-tabset:not(#Root) > ul.nav-tabs.bt-has-more {
     display: flex;
     width: 100%;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item {
+.ss-tabset:not(#Root) > ul.nav-tabs > li.nav-item {
     margin: 0;
     border: 0;
     background: none;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
+.ss-tabset:not(#Root) > ul.nav-tabs > li.nav-item > a.nav-link {
     margin: 0;
     padding: 4px 16px;
     border: 0 !important;
@@ -227,13 +229,13 @@ li.bt-more.open .bt-more-menu {
     transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link:hover {
+.ss-tabset:not(#Root) > ul.nav-tabs > li.nav-item > a.nav-link:hover {
     color: var(--bt-tab-hover-color);
 }
 
 /* Active pill (jQuery UI marks the <li>, Bootstrap the <a>). */
-.ss-tabset .ss-tabset > ul.nav-tabs > li.ui-tabs-active > a.nav-link,
-.ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link.active {
+.ss-tabset:not(#Root) > ul.nav-tabs > li.ui-tabs-active > a.nav-link,
+.ss-tabset:not(#Root) > ul.nav-tabs > li.nav-item > a.nav-link.active {
     background: var(--bt-tab-active-bg);
     color: var(--bt-tab-active-color);
 }
@@ -245,7 +247,7 @@ li.bt-more.open .bt-more-menu {
 }
 
 /* Level 3+: a touch smaller. */
-.ss-tabset .ss-tabset .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
+.ss-tabset:not(#Root) .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
     padding: 3px 13px;
     font-size: 0.9rem;
 }
