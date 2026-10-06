@@ -188,8 +188,13 @@ li.bt-more.open .bt-more-menu {
  * covers both nested tabs on a normal edit form AND the sub-tabsets under a
  * SiteConfig/SingleRecordAdmin primary tab — so only the top bar keeps its
  * native underline style.
+ *
+ * The `:not(.ss-ui-action-tabset)` guard excludes the CMS edit-form action
+ * bar, which is itself built from top-level `.ss-tabset`s (#ActionMenus "More
+ * options", Fluent's "Translations") carrying `.ss-ui-action-tabset`. Without
+ * it those menus pick up the pill track and the toolbar row inflates.
  * ------------------------------------------------------------------ */
-.ss-tabset:not(#Root) > ul.nav-tabs {
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) > ul.nav-tabs {
     display: inline-flex; /* compact by default (hugs its tabs) */
     flex-wrap: wrap;
     align-items: center;
@@ -206,23 +211,23 @@ li.bt-more.open .bt-more-menu {
 /* A GridField / action toolbar pulls itself up with a negative top margin, which would cancel the
    gap below the sub-tab pill bar (leaving the content flush against it). Drop that pull-up inside a
    sub-tabset panel so the pill bar's margin-bottom actually shows. */
-.ss-tabset:not(#Root) .toolbar--content {
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) .toolbar--content {
     margin-top: 0;
 }
 
 /* Only stretch full-width when a More button is present, so it can right-align. */
-.ss-tabset:not(#Root) > ul.nav-tabs.bt-has-more {
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) > ul.nav-tabs.bt-has-more {
     display: flex;
     width: 100%;
 }
 
-.ss-tabset:not(#Root) > ul.nav-tabs > li.nav-item {
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) > ul.nav-tabs > li.nav-item {
     margin: 0;
     border: 0;
     background: none;
 }
 
-.ss-tabset:not(#Root) > ul.nav-tabs > li.nav-item > a.nav-link {
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) > ul.nav-tabs > li.nav-item > a.nav-link {
     margin: 0;
     padding: 4px 16px;
     border: 0 !important;
@@ -236,13 +241,13 @@ li.bt-more.open .bt-more-menu {
     transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ss-tabset:not(#Root) > ul.nav-tabs > li.nav-item > a.nav-link:hover {
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) > ul.nav-tabs > li.nav-item > a.nav-link:hover {
     color: var(--bt-tab-hover-color);
 }
 
 /* Active pill (jQuery UI marks the <li>, Bootstrap the <a>). */
-.ss-tabset:not(#Root) > ul.nav-tabs > li.ui-tabs-active > a.nav-link,
-.ss-tabset:not(#Root) > ul.nav-tabs > li.nav-item > a.nav-link.active {
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) > ul.nav-tabs > li.ui-tabs-active > a.nav-link,
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) > ul.nav-tabs > li.nav-item > a.nav-link.active {
     background: var(--bt-tab-active-bg);
     color: var(--bt-tab-active-color);
 }
@@ -254,7 +259,7 @@ li.bt-more.open .bt-more-menu {
 }
 
 /* Level 3+: a touch smaller. */
-.ss-tabset:not(#Root) .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
+.ss-tabset:not(#Root):not(.ss-ui-action-tabset) .ss-tabset > ul.nav-tabs > li.nav-item > a.nav-link {
     padding: 3px 13px;
     font-size: 0.9rem;
 }
