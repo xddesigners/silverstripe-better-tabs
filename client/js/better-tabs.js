@@ -16,6 +16,11 @@
         return (typeof window !== 'undefined' && window.__betterTabsMore) || 'More';
     }
 
+    // Accessible name for the breadcrumb landmark (override via window.__betterTabsBreadcrumbLabel).
+    function breadcrumbLabel() {
+        return (typeof window !== 'undefined' && window.__betterTabsBreadcrumbLabel) || 'Breadcrumb';
+    }
+
     function debounce(fn, ms) {
         var t;
         return function () {
@@ -85,6 +90,7 @@
                 }
                 var icon = document.createElement('span');
                 icon.className = 'tab__icon font-icon-' + map[key];
+                icon.setAttribute('aria-hidden', 'true'); // decorative — the tab label is the name
                 link.insertBefore(icon, link.firstChild);
                 link.classList.add('bt-has-view-icon');
             }
@@ -165,6 +171,48 @@
         return li.classList.contains('ui-tabs-active') || li.classList.contains('active');
     }
 
+    var moreSeq = 0;
+
+    // Move focus to a menu item by index (roving: the items are tabindex -1, the menu is one tab stop).
+    function focusMenuItem(menu, idx) {
+        if (!menu) {
+            return;
+        }
+        var items = menu.querySelectorAll(':scope > li > a');
+        if (!items.length) {
+            return;
+        }
+        items[(idx + items.length) % items.length].focus();
+    }
+
+    function openMore(more, focusFirst) {
+        more.classList.add('open');
+        var toggle = more.querySelector('.bt-more-toggle');
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', 'true');
+        }
+        if (focusFirst) {
+            var menu = more.querySelector('.bt-more-menu');
+            var active = menu.querySelector(':scope > li > a.bt-active');
+            if (active) {
+                active.focus();
+            } else {
+                focusMenuItem(menu, 0);
+            }
+        }
+    }
+
+    function closeMore(more, focusToggle) {
+        more.classList.remove('open');
+        var toggle = more.querySelector('.bt-more-toggle');
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', 'false');
+            if (focusToggle) {
+                toggle.focus();
+            }
+        }
+    }
+
     function ensureMore(ul) {
         var more = ul.querySelector(':scope > li.bt-more');
         if (more) {
@@ -172,6 +220,7 @@
         }
         more = document.createElement('li');
         more.className = 'nav-item bt-more';
+        more.setAttribute('role', 'presentation'); // it holds a menu button, not a tab
         more.style.display = 'none';
 
         // On the CMS primary nav (jQuery UI tabs, e.g. SiteConfig) borrow the tab classes so the
@@ -181,12 +230,16 @@
             more.classList.add('ui-tabs-tab', 'ui-corner-top', 'ui-state-default', 'ui-tab', 'bt-more-primary');
         }
 
+        var menuId = 'bt-more-menu-' + (++moreSeq);
+
         var toggle = document.createElement('a');
         toggle.className = 'nav-link bt-more-toggle' + (primary ? ' ui-tabs-anchor' : '');
         toggle.href = '#';
         toggle.setAttribute('role', 'button');
-        toggle.setAttribute('aria-haspopup', 'true');
+        toggle.setAttribute('aria-haspopup', 'menu');
         toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-controls', menuId);
+        toggle.setAttribute('tabindex', '0');
         toggle.textContent = moreLabel();
         toggle.insertAdjacentHTML('beforeend',
             ' <svg class="bt-kebab" viewBox="0 0 4 16" aria-hidden="true">' +
@@ -194,6 +247,9 @@
 
         var menu = document.createElement('ul');
         menu.className = 'bt-more-menu';
+        menu.id = menuId;
+        menu.setAttribute('role', 'menu');
+        menu.setAttribute('aria-label', moreLabel());
 
         more.appendChild(toggle);
         more.appendChild(menu);
@@ -202,8 +258,53 @@
         toggle.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            var open = more.classList.toggle('open');
-            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (more.classList.contains('open')) {
+                closeMore(more, false);
+            } else {
+                openMore(more, false); // pointer: open without yanking focus
+            }
+        });
+
+        // Open with the keyboard and land inside the menu (menu-button pattern).
+        toggle.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                e.stopPropagation();
+                openMore(more, true);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                e.stopPropagation();
+                openMore(more, false);
+                focusMenuItem(menu, -1); // last item
+            }
+        });
+
+        // Roving arrow-key navigation inside the menu; Esc closes and returns focus to the toggle.
+        menu.addEventListener('keydown', function (e) {
+            var items = Array.prototype.slice.call(menu.querySelectorAll(':scope > li > a'));
+            var cur = items.indexOf(document.activeElement);
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                focusMenuItem(menu, cur + 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                focusMenuItem(menu, cur - 1);
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                focusMenuItem(menu, 0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                focusMenuItem(menu, items.length - 1);
+            } else if ((e.key === ' ' || e.key === 'Spacebar') && cur > -1) {
+                e.preventDefault();
+                items[cur].click();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMore(more, true);
+            } else if (e.key === 'Tab') {
+                closeMore(more, false); // single tab stop — let focus move on
+            }
         });
 
         return more;
@@ -214,10 +315,12 @@
             document.querySelectorAll('li.bt-more.open, li.bt-tabmenu.open'),
             function (m) {
                 m.classList.remove('open');
-                var t = m.querySelector('.bt-more-toggle');
-                if (t) {
-                    t.setAttribute('aria-expanded', 'false');
-                }
+                // Collapse every popup trigger inside: the More toggle, the dropdown root tab link
+                // and any submenu parents (all carry aria-haspopup).
+                Array.prototype.forEach.call(
+                    m.querySelectorAll('a[aria-haspopup]'),
+                    function (a) { a.setAttribute('aria-expanded', 'false'); }
+                );
             }
         );
     }
@@ -248,6 +351,10 @@
         menu.textContent = '';
         more.style.display = 'none';
         more.classList.remove('bt-has-active', 'open');
+        var moreToggle = more.querySelector('.bt-more-toggle');
+        if (moreToggle) {
+            moreToggle.setAttribute('aria-expanded', 'false');
+        }
         ul.classList.remove('bt-has-more');
 
         if (!wraps(ul)) {
@@ -281,10 +388,14 @@
                 return;
             }
             var item = document.createElement('li');
+            item.setAttribute('role', 'none'); // the <a> carries the menuitem role
             var link = document.createElement('a');
             link.href = '#';
+            link.setAttribute('role', 'menuitem');
+            link.setAttribute('tabindex', '-1'); // roving — focus is managed from the menu keydown
             if (isActive(li)) {
                 link.className = 'bt-active';
+                link.setAttribute('aria-current', 'true');
                 anyActive = true;
             }
             // Carry the tab's icon (if any) into the dropdown item.
@@ -424,11 +535,99 @@
         root.addEventListener('mouseleave', clear);
     }
 
+    // Open a dropdown-mode tab's menu from the keyboard and drop focus into it.
+    function openDropdown(li, link, focusLast) {
+        closeAllMenus();
+        li.classList.add('open');
+        link.setAttribute('aria-expanded', 'true');
+        focusMenuItem(li.querySelector(':scope > ul.bt-tab-root-menu'), focusLast ? -1 : 0);
+    }
+
+    // Keyboard for a dropdown-mode tab. jQuery UI owns Left/Right for moving across the tab bar, so
+    // we only claim Down/Up/Enter/Space while the tab itself has focus (menu-button pattern); once
+    // focus is inside the menu we drive the full arrow/Home/End/flyout/Esc navigation.
+    function bindDropdownKeys(li, link, rootMenu) {
+        // Capture phase + stopImmediatePropagation: jQuery UI binds its own arrow-key tab nav to this
+        // same tab, so we must preempt it for the keys we own (Down/Up/Enter/Space while the tab is
+        // focused, and all menu navigation). Left/Right while the tab is focused are left to jQuery
+        // UI so moving across the tab bar still works.
+        li.addEventListener('keydown', function (e) {
+            var a = document.activeElement;
+
+            if (a === li || a === link) {
+                // Enter/Space/↓ open the menu (its sub-tabs). ↑ is the tablist handler's job
+                // (return to the parent tab), so we don't claim it here.
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    openDropdown(li, link, false);
+                }
+                return;
+            }
+
+            var curMenu = a && a.closest ? a.closest('ul.bt-more-menu') : null;
+            if (!curMenu || !li.contains(curMenu)) {
+                return;
+            }
+            var items = Array.prototype.slice.call(curMenu.querySelectorAll(':scope > li > a'));
+            var idx = items.indexOf(a);
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusMenuItem(curMenu, idx + 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusMenuItem(curMenu, idx - 1);
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusMenuItem(curMenu, 0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                focusMenuItem(curMenu, items.length - 1);
+            } else if (e.key === 'ArrowRight') {
+                var parentLi = a.parentNode;
+                if (parentLi && parentLi.classList && parentLi.classList.contains('bt-submenu')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    a.setAttribute('aria-expanded', 'true');
+                    focusMenuItem(parentLi.querySelector(':scope > ul.bt-flyout'), 0);
+                }
+            } else if (e.key === 'ArrowLeft') {
+                var ownerLi = curMenu.parentNode;
+                if (ownerLi && ownerLi.classList && ownerLi.classList.contains('bt-submenu')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var parentLink = ownerLi.querySelector(':scope > a');
+                    if (parentLink) {
+                        parentLink.setAttribute('aria-expanded', 'false');
+                        parentLink.focus();
+                    }
+                }
+            } else if (e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                a.click();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                closeAllMenus();
+                li.focus(); // the tab <li> is the focusable element (jQuery UI roving model)
+            } else if (e.key === 'Tab') {
+                closeAllMenus(); // single tab stop — let focus move on
+            }
+        }, true);
+    }
+
     // Build a dropdown list (reusing the "More" menu look) for one tabset's child tabs. A child
     // that is itself a tab group becomes a flyout submenu (recursively).
     function buildMenuLevel(tabset) {
         var menu = document.createElement('ul');
         menu.className = 'bt-more-menu';
+        menu.setAttribute('role', 'menu');
         var nav = tabset.querySelector(':scope > ul.nav-tabs');
         if (!nav) {
             return menu;
@@ -440,8 +639,11 @@
             }
             var group = childTabset(anchor);
             var item = document.createElement('li');
+            item.setAttribute('role', 'none');
             var link = document.createElement('a');
             link.href = '#';
+            link.setAttribute('role', 'menuitem');
+            link.setAttribute('tabindex', '-1');
 
             var iconEl = anchor.querySelector('.tab__icon');
             if (iconEl) {
@@ -463,12 +665,24 @@
 
             if (group) {
                 item.classList.add('bt-submenu');
+                link.setAttribute('aria-haspopup', 'menu');
+                link.setAttribute('aria-expanded', 'false');
                 link.insertAdjacentHTML('beforeend',
                     '<span class="bt-flyout-caret" aria-hidden="true">›</span>');
                 var flyout = buildMenuLevel(group);
                 flyout.classList.add('bt-flyout');
+                flyout.setAttribute('aria-label', (anchor.textContent || '').trim());
                 item.appendChild(link);
                 item.appendChild(flyout);
+                // Keep aria-expanded in step with the CSS :hover/:focus-within reveal.
+                item.addEventListener('mouseenter', function () { link.setAttribute('aria-expanded', 'true'); });
+                item.addEventListener('mouseleave', function () { link.setAttribute('aria-expanded', 'false'); });
+                item.addEventListener('focusin', function () { link.setAttribute('aria-expanded', 'true'); });
+                item.addEventListener('focusout', function (e) {
+                    if (!item.contains(e.relatedTarget)) {
+                        link.setAttribute('aria-expanded', 'false');
+                    }
+                });
                 // Flyout opens to the right by default; flip left only if it would overflow.
                 flipIfOverflow(item, flyout, 'bt-flyout-left');
                 // Clicking a group heading jumps to its first leaf (hover opens the flyout).
@@ -542,25 +756,40 @@
                 li.classList.add('bt-tabmenu');
                 addTabCaret(link);
 
+                var rootMenuId = 'bt-tab-root-menu-' + (++moreSeq);
                 var menu = buildMenuLevel(tabset);
                 menu.classList.add('bt-tab-root-menu');
+                menu.id = rootMenuId;
+                menu.setAttribute('aria-label', (link.textContent || '').trim());
                 li.appendChild(menu);
+
+                // The tab now opens a menu rather than selecting a panel — announce that.
+                link.setAttribute('aria-haspopup', 'menu');
+                link.setAttribute('aria-expanded', 'false');
+                link.setAttribute('aria-controls', rootMenuId);
 
                 // Open the menu under the tab by default; align it right only if it would
                 // overflow the viewport (measured each time it opens).
                 flipIfOverflow(li, menu, 'bt-menu-right');
 
                 // Click opens the menu (hover opens it too, via CSS); don't let it switch tabs
-                // or hit the CMS link handler.
+                // or hit the CMS link handler. Ignore keyboard-synthesised clicks (detail 0) —
+                // the keydown handler drives the keyboard path.
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    if (e.detail === 0) {
+                        return;
+                    }
                     var wasOpen = li.classList.contains('open');
                     closeAllMenus();
                     if (!wasOpen) {
                         li.classList.add('open');
+                        link.setAttribute('aria-expanded', 'true');
                     }
                 });
+
+                bindDropdownKeys(li, link, menu);
             }
         );
     }
@@ -674,8 +903,9 @@
         }
         removeBreadcrumb();
 
-        var bc = document.createElement('div');
+        var bc = document.createElement('nav'); // landmark so SR users can find/skip it
         bc.className = 'bt-breadcrumb';
+        bc.setAttribute('aria-label', breadcrumbLabel());
         bc.setAttribute('data-bt-sig', sig);
         crumbs.forEach(function (crumb, i) {
             if (i) {
@@ -688,6 +918,9 @@
             var isLast = i === crumbs.length - 1;
             var item = document.createElement('a');
             item.className = 'bt-breadcrumb-item' + (isLast ? ' bt-current' : '');
+            if (isLast) {
+                item.setAttribute('aria-current', 'location'); // the active tab path
+            }
             item.textContent = crumb.label;
             // Carry the real tab's full link (absolute URL incl. the #hash), so the crumb is a
             // genuine link (copy / middle-click / hover preview) — the same target as the tab.
@@ -735,11 +968,144 @@
         Array.prototype.forEach.call(getNavs(), layout);
     }
 
+    // Real tabs currently on screen (not collapsed into the "More" overflow).
+    function visibleRealTabs(ul) {
+        return realTabs(ul).filter(function (li) {
+            return li.style.display !== 'none' && li.offsetParent !== null;
+        });
+    }
+
+    function tabAnchor(li) {
+        return li.querySelector(':scope > a.nav-link')
+            || li.querySelector(':scope > a.ui-tabs-anchor')
+            || li.querySelector(':scope > a');
+    }
+
+    // The sub-tab to land on when descending (↓) into a tab's own nested tab bar: its active
+    // sub-tab (or the first visible one). Null when the tab has no visible nested tab bar.
+    function descendTarget(li) {
+        var anchor = tabAnchor(li);
+        if (!anchor) {
+            return null;
+        }
+        var panelId = anchor.getAttribute('aria-controls') || (anchor.hash || '').slice(1);
+        var panel = panelId ? document.getElementById(panelId) : null;
+        if (!panel) {
+            return null;
+        }
+        var nestedNav = panel.classList.contains('ss-tabset')
+            ? panel.querySelector(':scope > ul.nav-tabs')
+            : panel.querySelector('.ss-tabset > ul.nav-tabs');
+        if (!nestedNav) {
+            return null;
+        }
+        var active = nestedNav.querySelector(':scope > li.ui-tabs-active');
+        if (active && active.offsetParent !== null) {
+            return active;
+        }
+        var vis = visibleRealTabs(nestedNav);
+        return vis.length ? vis[0] : null;
+    }
+
+    // The parent tab to return to when ascending (↑) out of a nested tab bar — the tab whose panel
+    // holds this tablist. Null for a top-level (Root) tablist, which has no parent tab.
+    function parentTabFor(ul) {
+        var tabset = ul.closest ? ul.closest('.ss-tabset') : null;
+        if (!tabset || !tabset.id) {
+            return null;
+        }
+        var parentLink = document.getElementById('tab-' + tabset.id);
+        var parentLi = parentLink && parentLink.closest ? parentLink.closest('li') : null;
+        return (parentLi && parentLi.offsetParent !== null) ? parentLi : null;
+    }
+
+    // Tab-bar arrow navigation. jQuery UI drives this natively, but it will arrow onto tabs we've
+    // collapsed into "More" (display:none) — and ACTIVATING a hidden tab makes the CMS fire a
+    // spurious PJAX panel reload that races and can 400. So we take over the tab-bar arrow keys in
+    // the capture phase (preempting jQuery UI). ←/→ move across the VISIBLE sibling tabs (overflowed
+    // ones stay reachable through "More"); ↓ descends into the tab's own sub-tab bar and ↑ returns
+    // to the parent tab, so a deep tab tree is fully keyboard-navigable in both axes.
+    function bindTablistKeys(ul) {
+        ul.addEventListener('keydown', function (e) {
+            var a = document.activeElement;
+            // Act only when a real (non-More) tab in THIS bar has focus — not a menu item, not More.
+            if (!a || a.parentNode !== ul || a.tagName !== 'LI' || a.classList.contains('bt-more')) {
+                return;
+            }
+
+            // ↓ : descend into the tab's nested sub-tab bar (dropdown-mode tabs open their menu
+            // instead — handled by the dropdown key handler, so we bow out for those).
+            if (e.key === 'ArrowDown') {
+                if (a.classList.contains('bt-tabmenu')) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var sub = descendTarget(a);
+                if (sub) {
+                    sub.focus();
+                }
+                return;
+            }
+            // ↑ : return to the parent tab (no-op on a top-level tab).
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var parent = parentTabFor(ul);
+                if (parent) {
+                    parent.focus();
+                }
+                return;
+            }
+
+            // ←/→/Home/End : move across the visible sibling tabs.
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') {
+                return;
+            }
+            var vis = visibleRealTabs(ul);
+            var cur = vis.indexOf(a);
+            if (vis.length < 2 || cur === -1) {
+                return;
+            }
+            e.preventDefault();
+            e.stopImmediatePropagation(); // preempt jQuery UI (it would land on a hidden tab)
+            var target;
+            if (e.key === 'Home') {
+                target = vis[0];
+            } else if (e.key === 'End') {
+                target = vis[vis.length - 1];
+            } else {
+                var forward = (e.key === 'ArrowRight');
+                target = vis[(cur + (forward ? 1 : -1) + vis.length) % vis.length];
+            }
+            if (target && target !== a) {
+                var anchor = tabAnchor(target);
+                if (anchor) {
+                    activateTab(anchor); // jQuery UI activation keeps its roving tabindex in step
+                    target.setAttribute('tabindex', '0');
+                    target.focus();
+                }
+            }
+        }, true);
+    }
+
     function enhance(ul) {
         if (ul.getAttribute('data-bt') === '1') {
             return;
         }
         ul.setAttribute('data-bt', '1');
+
+        // Name a nested tablist by the tab that opens it, so screen-reader users can tell the several
+        // tablists on a deep form apart (the CMS leaves them unnamed). The top-level Root tablist has no
+        // opening tab, so it's left to the CMS default.
+        if (!ul.getAttribute('aria-label')) {
+            var ownTabset = ul.parentNode;
+            var opener = ownTabset && ownTabset.id ? document.getElementById('tab-' + ownTabset.id) : null;
+            var openerName = opener ? (opener.textContent || '').trim() : '';
+            if (openerName) {
+                ul.setAttribute('aria-label', openerName);
+            }
+        }
 
         // Hidden navs inside a dropdown-mode group are driven by the menu, not enhanced here.
         if (inMarkedSubtree(ul)) {
@@ -779,6 +1145,7 @@
             ro.observe(ul.parentNode || ul);
         }
 
+        bindTablistKeys(ul);
         layout(ul);
     }
 

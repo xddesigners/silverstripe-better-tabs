@@ -197,10 +197,42 @@ XD\BetterTabs\BetterTabs:
 
 ![Nested sub-tabs as a segmented pill bar with a clickable breadcrumb below](docs/images/sub-tabs.png)
 
+## Accessibility
+
+The CMS's native tabs are already keyboard- and screen-reader-accessible (an ARIA `tablist`
+with roving focus and arrow-key navigation), and the module keeps that intact. Its own
+additions follow the WAI-ARIA Authoring Practices so nothing the module introduces strands a
+tab away from the keyboard:
+
+- **Tab-bar arrow keys.** The module takes over the tab bar's arrow keys so they stay consistent
+  across a deep tab tree: <kbd>←</kbd>/<kbd>→</kbd> move between the visible sibling tabs (tabs
+  collapsed into "More" are skipped — reach them through that menu), <kbd>Home</kbd>/<kbd>End</kbd>
+  jump to the ends, <kbd>↓</kbd> descends into the tab's own sub-tab bar and <kbd>↑</kbd> returns to
+  the parent tab. This also fixes a CMS quirk where arrowing onto a collapsed (hidden) tab triggered
+  a spurious panel reload.
+
+- **Overflow "More" menu** — a conformant **menu button**: the trigger exposes
+  `aria-haspopup="menu"`, `aria-expanded` and `aria-controls`; the popup is a `role="menu"` of
+  `role="menuitem"` entries. Open it with <kbd>Enter</kbd>, <kbd>Space</kbd> or <kbd>↓</kbd>
+  (focus moves into the menu), move with <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>Home</kbd>/<kbd>End</kbd>,
+  and <kbd>Esc</kbd> closes it and returns focus to the button.
+- **Dropdown-mode groups** — the group's tab is a menu button too (`aria-haspopup`/`aria-expanded`),
+  its menu and flyouts are `role="menu"`; <kbd>↓</kbd> opens it, <kbd>→</kbd> opens a flyout and
+  <kbd>←</kbd> closes it, <kbd>Esc</kbd> returns focus to the tab. The CMS tab bar's own
+  <kbd>←</kbd>/<kbd>→</kbd> navigation keeps working.
+- **Breadcrumb** — rendered as a `<nav>` landmark with a localised label, marking the current
+  crumb with `aria-current`.
+- **Icons** — injected tab icons are `aria-hidden` (decorative; the tab's label names it), and
+  each nested tablist is given an accessible name from the tab that opens it.
+
+Colours set with `setColor()` are applied verbatim — pick text/background pairs that meet WCAG
+AA (4.5:1), remembering that an inactive coloured tab is faded by `--bt-inactive-opacity`.
+
 ## Translations
 
-The "More" overflow label is translatable via Silverstripe i18n, shown in the CMS user's
-locale. Translations ship for **en, nl, de, it, es, fr** (`lang/<locale>.yml`).
+The "More" overflow label and the breadcrumb's `<nav>` label are translatable via Silverstripe
+i18n, shown in the CMS user's locale. Translations ship for **en, nl, de, it, es, fr**
+(`lang/<locale>.yml`).
 
 ## License
 
